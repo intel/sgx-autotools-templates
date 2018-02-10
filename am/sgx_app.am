@@ -1,0 +1,8 @@
+include $(top_srcdir)/am/sgx.am
+
+SGX_URTS_LIB=@SGX_URTS_LIB@
+SGX_UAE_SERVICE_LIB=@SGX_UAE_SERVICE_LIB@
+
+%_u.h %_u.c: %.edl
+	$(SGXSDK_BINDIR)/sgx_edger8r --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --untrusted $<
+

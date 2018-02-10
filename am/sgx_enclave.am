@@ -1,0 +1,45 @@
+include $(top_srcdir)/am/sgx.am
+
+SGX_SIGN=$(SGXSDK_BINDIR)/sgx_sign
+
+SGX_TRTS_LIB=@SGX_TRTS_LIB@
+SGX_TSERVICE_LIB=@SGX_TSERVICE_LIB@
+
+EXEEXT=.so
+
+AM_CFLAGS=-nostdinc -fvisibility=hidden -fpie -fstack-protector
+AM_CPPFLAGS=-I$(SGXSDK_INCDIR) -I$(SGXSDK_INCDIR)/tlibc
+AM_CXXFLAGS=-nostdinc++ 
+
+$(ENCLAVE)_t.h $(ENCLAVE)_t.c: $(ENCLAVE).edl
+	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --trusted $<
+
+bin_PROGRAMS = $(ENCLAVE)
+bin_PROGRAMS += $(ENCLAVE).signed
+
+$(ENCLAVE).signed.so: $(ENCLAVE).so $(ENCLAVE)_private.pem $(ENCLAVE).config.xml
+	$(SGX_SIGN) sign -key $(ENCLAVE)_private.pem -enclave $< -out $@ -config $(ENCLAVE).config.xml
+
+$(ENCLAVE)_private.pem:
+	@echo "Creating random private key file for testing and"
+	@echo "debugging purposes:"
+	@echo "$(ENCLAVE_PKEY)"
+	openssl genrsa -3 -out $@ 3072
+
+$(ENCLAVE).config.xml:
+	@echo "Creating default enclave configuration file:"
+	@echo "$(ENCLAVE_CFG)"
+	@echo "<EnclaveConfiguration>">$(ENCLAVE).config.xml
+	@echo " <ProdID>0</ProdID>">>$(ENCLAVE).config.xml
+	@echo " <ISVSVN>0</ISVSVN>">>$(ENCLAVE).config.xml
+	@echo " <StackMaxSize>0x40000</StackMaxSize>">>$(ENCLAVE).config.xml
+	@echo " <HeapMaxSize>0x100000</HeapMaxSize>">>$(ENCLAVE).config.xml
+	@echo " <TCSNum>1</TCSNum>">>$(ENCLAVE).config.xml
+	@echo " <TCSPolicy>1</TCSPolicy>">>$(ENCLAVE).config.xml
+	@echo " <!-- Recommend changing 'DisableDebug' to 1 to make the enclave undebuggable for enclave release -->">>$(ENCLAVE).config.xml
+	@echo " <DisableDebug>0</DisableDebug>">>$(ENCLAVE).config.xml
+	@echo " <MiscSelect>0</MiscSelect>">>$(ENCLAVE).config.xml
+	@echo " <MiscMask>0xFFFFFFFF</MiscMask>">>$(ENCLAVE).config.xml
+	@echo " </EnclaveConfiguration>">>$(ENCLAVE).config.xml
+	@echo ""
+
