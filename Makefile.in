@@ -79,7 +79,7 @@ subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) COPYING compile \
-	config.guess config.sub depcomp install-sh missing
+	depcomp install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/sgx_init.m4 \
 	$(top_srcdir)/configure.ac
@@ -210,8 +210,6 @@ DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
-ENCLAVE_LDADD = @ENCLAVE_LDADD@
-ENCLAVE_LDFLAGS = @ENCLAVE_LDFLAGS@
 ENCLAVE_SIGN_TARGET = @ENCLAVE_SIGN_TARGET@
 EXEEXT = @EXEEXT@
 INSTALL = @INSTALL@
@@ -244,6 +242,8 @@ SGXSSL = @SGXSSL@
 SGXSSL_INCDIR = @SGXSSL_INCDIR@
 SGXSSL_LIBDIR = @SGXSSL_LIBDIR@
 SGX_DEBUG_FLAGS = @SGX_DEBUG_FLAGS@
+SGX_ENCLAVE_LDADD = @SGX_ENCLAVE_LDADD@
+SGX_ENCLAVE_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
 SGX_TRTS_LIB = @SGX_TRTS_LIB@
 SGX_TSERVICE_LIB = @SGX_TSERVICE_LIB@
 SGX_UAE_SERVICE_LIB = @SGX_UAE_SERVICE_LIB@

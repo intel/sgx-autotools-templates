@@ -79,7 +79,9 @@ POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/../../am/sgx_enclave.am \
 	$(top_srcdir)/am/sgx.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/depcomp
-bin_PROGRAMS = $(am__EXEEXT_1) $(ENCLAVE).signed$(EXEEXT)
+libexec_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3)
+@ENCLAVE_RELEASE_SIGN_TRUE@am__append_1 = signed_enclave_rel
+@ENCLAVE_RELEASE_SIGN_FALSE@am__append_2 = $(ENCLAVE).signed
 subdir = sample/EnclaveHash
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/sgx_init.m4 \
@@ -91,16 +93,19 @@ CONFIG_HEADER = $(top_builddir)/sample/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_1 = EnclaveHash$(EXEEXT)
-am__installdirs = "$(DESTDIR)$(bindir)"
-PROGRAMS = $(bin_PROGRAMS)
+@ENCLAVE_RELEASE_SIGN_TRUE@am__EXEEXT_2 = signed_enclave_rel$(EXEEXT)
+@ENCLAVE_RELEASE_SIGN_FALSE@am__EXEEXT_3 = $(ENCLAVE).signed$(EXEEXT)
+am__installdirs = "$(DESTDIR)$(libexecdir)"
+PROGRAMS = $(libexec_PROGRAMS)
 __ENCLAVE__signed_SOURCES = $(ENCLAVE).c
 __ENCLAVE__signed_OBJECTS = $(ENCLAVE).$(OBJEXT)
 __ENCLAVE__signed_LDADD = $(LDADD)
 am_EnclaveHash_OBJECTS = EnclaveHash_t.$(OBJEXT) EnclaveHash.$(OBJEXT)
 EnclaveHash_OBJECTS = $(am_EnclaveHash_OBJECTS)
 EnclaveHash_DEPENDENCIES =
-EnclaveHash_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(EnclaveHash_LDFLAGS) $(LDFLAGS) -o $@
+signed_enclave_rel_SOURCES = signed_enclave_rel.c
+signed_enclave_rel_OBJECTS = signed_enclave_rel.$(OBJEXT)
+signed_enclave_rel_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -129,8 +134,9 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(ENCLAVE).c $(EnclaveHash_SOURCES)
-DIST_SOURCES = $(ENCLAVE).c $(EnclaveHash_SOURCES)
+SOURCES = $(ENCLAVE).c $(EnclaveHash_SOURCES) signed_enclave_rel.c
+DIST_SOURCES = $(ENCLAVE).c $(EnclaveHash_SOURCES) \
+	signed_enclave_rel.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -177,8 +183,6 @@ DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
-ENCLAVE_LDADD = @ENCLAVE_LDADD@
-ENCLAVE_LDFLAGS = @ENCLAVE_LDFLAGS@
 ENCLAVE_SIGN_TARGET = @ENCLAVE_SIGN_TARGET@
 EXEEXT = .so
 INSTALL = @INSTALL@
@@ -211,6 +215,8 @@ SGXSSL = @SGXSSL@
 SGXSSL_INCDIR = @SGXSSL_INCDIR@
 SGXSSL_LIBDIR = @SGXSSL_LIBDIR@
 SGX_DEBUG_FLAGS = @SGX_DEBUG_FLAGS@
+SGX_ENCLAVE_LDADD = @SGX_ENCLAVE_LDADD@
+SGX_ENCLAVE_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
 SGX_TRTS_LIB = @SGX_TRTS_LIB@
 SGX_TSERVICE_LIB = @SGX_TSERVICE_LIB@
 SGX_UAE_SERVICE_LIB = @SGX_UAE_SERVICE_LIB@
@@ -268,10 +274,15 @@ SGX_SIGN = $(SGXSDK_BINDIR)/sgx_sign
 AM_CFLAGS = -nostdinc -fvisibility=hidden -fpie -fstack-protector
 AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -I$(SGXSDK_INCDIR)/tlibc
 AM_CXXFLAGS = -nostdinc++ 
+AM_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
 ENCLAVE = EnclaveHash
 EnclaveHash_SOURCES = EnclaveHash_t.c EnclaveHash_t.h EnclaveHash.c
-EnclaveHash_LDFLAGS = @ENCLAVE_LDFLAGS@
-EnclaveHash_LDADD = @ENCLAVE_LDADD@
+
+# default AM_LDFLAGS.
+
+# AM_LDFLAGS +=
+EnclaveHash_LDADD = @SGX_ENCLAVE_LDADD@
+SGX_EXTRA_TLIBS = 
 all: all-am
 
 .SUFFIXES:
@@ -307,12 +318,12 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-binPROGRAMS: $(bin_PROGRAMS)
+install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	@$(NORMAL_INSTALL)
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	@list='$(libexec_PROGRAMS)'; test -n "$(libexecdir)" || list=; \
 	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(libexecdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(libexecdir)" || exit 1; \
 	fi; \
 	for p in $$list; do echo "$$p $$p"; done | \
 	sed 's/$(EXEEXT)$$//' | \
@@ -331,24 +342,24 @@ install-binPROGRAMS: $(bin_PROGRAMS)
 	while read type dir files; do \
 	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
 	    test -z "$$files" || { \
-	      echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	      $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
+	      echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(libexecdir)$$dir'"; \
+	      $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(libexecdir)$$dir" || exit $$?; \
 	    } \
 	; done
 
-uninstall-binPROGRAMS:
+uninstall-libexecPROGRAMS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	@list='$(libexec_PROGRAMS)'; test -n "$(libexecdir)" || list=; \
 	files=`for p in $$list; do echo "$$p"; done | \
 	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
 	      -e 's/$$/$(EXEEXT)/' \
 	`; \
 	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(bindir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(libexecdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(libexecdir)" && rm -f $$files
 
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+clean-libexecPROGRAMS:
+	-test -z "$(libexec_PROGRAMS)" || rm -f $(libexec_PROGRAMS)
 
 $(ENCLAVE).signed$(EXEEXT): $(__ENCLAVE__signed_OBJECTS) $(__ENCLAVE__signed_DEPENDENCIES) $(EXTRA___ENCLAVE__signed_DEPENDENCIES) 
 	@rm -f $(ENCLAVE).signed$(EXEEXT)
@@ -356,7 +367,7 @@ $(ENCLAVE).signed$(EXEEXT): $(__ENCLAVE__signed_OBJECTS) $(__ENCLAVE__signed_DEP
 
 EnclaveHash$(EXEEXT): $(EnclaveHash_OBJECTS) $(EnclaveHash_DEPENDENCIES) $(EXTRA_EnclaveHash_DEPENDENCIES) 
 	@rm -f EnclaveHash$(EXEEXT)
-	$(AM_V_CCLD)$(EnclaveHash_LINK) $(EnclaveHash_OBJECTS) $(EnclaveHash_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(EnclaveHash_OBJECTS) $(EnclaveHash_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -367,6 +378,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/$(ENCLAVE).Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnclaveHash.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnclaveHash_t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_rel.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -468,7 +480,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(PROGRAMS)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)"; do \
+	for dir in "$(DESTDIR)$(libexecdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -503,7 +515,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
+clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -529,7 +541,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-binPROGRAMS
+install-exec-am: install-libexecPROGRAMS
 
 install-html: install-html-am
 
@@ -568,30 +580,42 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-libexecPROGRAMS
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
-	clean-binPROGRAMS clean-generic cscopelist-am ctags ctags-am \
-	distclean distclean-compile distclean-generic distclean-tags \
-	distdir dvi dvi-am html html-am info info-am install \
-	install-am install-binPROGRAMS install-data install-data-am \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
+.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
+	clean-libexecPROGRAMS cscopelist-am ctags ctags-am distclean \
+	distclean-compile distclean-generic distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-libexecPROGRAMS \
 	install-man install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
 	ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS
+	uninstall-libexecPROGRAMS
 
 
 $(ENCLAVE)_t.h $(ENCLAVE)_t.c: $(ENCLAVE).edl
 	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --trusted $<
+@ENCLAVE_RELEASE_SIGN_TRUE@.PHONY: signed_enclave_rel
+@ENCLAVE_RELEASE_SIGN_FALSE@$(ENCLAVE).signed.so: $(ENCLAVE).so $(ENCLAVE)_private.pem $(ENCLAVE).config.xml
+@ENCLAVE_RELEASE_SIGN_FALSE@	$(SGX_SIGN) sign -key $(ENCLAVE)_private.pem -enclave $< -out $@ -config $(ENCLAVE).config.xml
 
-$(ENCLAVE).signed.so: $(ENCLAVE).so $(ENCLAVE)_private.pem $(ENCLAVE).config.xml
-	$(SGX_SIGN) sign -key $(ENCLAVE)_private.pem -enclave $< -out $@ -config $(ENCLAVE).config.xml
+signed_enclave_rel$(EXEEXT):
+	@echo "--------------------------------------------------------------"
+	@echo "The project has been built in release hardware mode."
+	@echo "Please sign $(ENCLAVE).so with your signing key "
+	@echo "before you run the application to launch and access "
+	@echo "the enclave."
+	@echo
+	@echo "To sign the enclave use the command:"
+	@echo "   $(SGX_SIGN) sign -key <your_key> -enclave $(ENCLAVE).so -out $(ENCLAVE).signed.so -config $(ENCLAVE).config.xml"
+	@echo "You can also sign the enclave using an external signing tool."
+	@echo "--------------------------------------------------------------"
 
 $(ENCLAVE)_private.pem:
 	@echo "Creating random private key file for testing and"
@@ -615,6 +639,16 @@ $(ENCLAVE).config.xml:
 	@echo " <MiscMask>0xFFFFFFFF</MiscMask>">>$(ENCLAVE).config.xml
 	@echo " </EnclaveConfiguration>">>$(ENCLAVE).config.xml
 	@echo ""
+
+# This line is OPTIONAL, and comes with a WARNING.
+#
+# In general, you shouldn't need to use the program-specific LDFLAGS
+# instead of AM_LDFLAGS. But, if you need to, then you'll need to ensure
+# @SGX_ENCLAVE_LDFLAGS@ is included in the definition as this will 
+# override AM_LDFLAGS.
+#
+# EnclaveHash_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
+#
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

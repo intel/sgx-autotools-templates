@@ -588,8 +588,10 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-ENCLAVE_LDADD
-ENCLAVE_LDFLAGS
+ENCLAVE_RELEASE_SIGN_FALSE
+ENCLAVE_RELEASE_SIGN_TRUE
+SGX_ENCLAVE_LDADD
+SGX_ENCLAVE_LDFLAGS
 SGXSDK
 SGXSDK_INCDIR
 SGXSSL
@@ -4269,9 +4271,17 @@ $as_echo "$as_me: Found your Intel SGX SDK in $SGXSDK" >&6;}
 
 
 
-	ENCLAVE_LDFLAGS="-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"
+	SGX_ENCLAVE_LDFLAGS="-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"
 
-	ENCLAVE_LDADD="-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"
+	SGX_ENCLAVE_LDADD="-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"
+
+	 if test "x$_sgxbuild" = "xrelease"; then
+  ENCLAVE_RELEASE_SIGN_TRUE=
+  ENCLAVE_RELEASE_SIGN_FALSE='#'
+else
+  ENCLAVE_RELEASE_SIGN_TRUE='#'
+  ENCLAVE_RELEASE_SIGN_FALSE=
+fi
 
 
 
@@ -4415,6 +4425,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENCLAVE_RELEASE_SIGN_TRUE}" && test -z "${ENCLAVE_RELEASE_SIGN_FALSE}"; then
+  as_fn_error $? "conditional \"ENCLAVE_RELEASE_SIGN\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

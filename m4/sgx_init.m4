@@ -76,9 +76,10 @@ AC_DEFUN([SGX_INIT],[
 	AC_SUBST(SGXSDK_INCDIR, $SGXSDK/include)
 	AC_SUBST(SGXSDK)
 
-	AC_SUBST(ENCLAVE_LDFLAGS,
+	AC_SUBST(SGX_ENCLAVE_LDFLAGS,
 		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"])
-	AC_SUBST(ENCLAVE_LDADD,
-		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
+	AC_SUBST(SGX_ENCLAVE_LDADD,
+		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
+	AM_CONDITIONAL([ENCLAVE_RELEASE_SIGN], [test "x$_sgxbuild" = "xrelease"])
 ])
 
