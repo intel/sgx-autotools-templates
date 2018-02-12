@@ -1,4 +1,4 @@
-SUBDIRS = EnclaveHash
+SUBDIRS = . EnclaveHash
 
 include ../am/sgx_app.am
 
