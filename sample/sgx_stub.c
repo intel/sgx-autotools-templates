@@ -107,8 +107,10 @@ static int l_sgx_get_quote_size= 0;
 
 #ifdef SGX_HW_SIM
 #define UAE_SERVICE_LIB "libsgx_uae_service_sim.so"
+#define URTS_LIB "libsgx_urts_sim.so"
 #else
 #define UAE_SERVICE_LIB "libsgx_uae_service.so"
+#define URTS_LIB "libsgx_urts.so"
 #endif
 
 static void _undefined_symbol (const char *symbol)
@@ -137,8 +139,8 @@ static void *_load_libsgx_uae_service()
 		h_libsgx_uae_service= dlopen(UAE_SERVICE_LIB, RTLD_GLOBAL|RTLD_NOW);
 		if ( h_libsgx_uae_service == NULL ) {
 			fprintf(stderr, "%s: %s\n", UAE_SERVICE_LIB, dlerror());
-		}
-		l_libsgx_uae_service= ( h_libsgx_uae_service == NULL ) ? -1 : 1;
+			l_libsgx_uae_service= -1;
+		} else l_libsgx_uae_service= 1;
 	}
 
 	return h_libsgx_uae_service;
@@ -147,12 +149,11 @@ static void *_load_libsgx_uae_service()
 static void *_load_libsgx_urts()
 {
 	if ( l_libsgx_urts == 0 ) {
-#ifdef SGX_HW_SIM
-		h_libsgx_urts= dlopen("libsgx_urts_sim.so", RTLD_GLOBAL|RTLD_NOW);
-#else
-		h_libsgx_urts= dlopen("libsgx_urts.so", RTLD_GLOBAL|RTLD_NOW);
-#endif
-		l_libsgx_urts= ( h_libsgx_urts == NULL ) ? -1 : 1;
+		h_libsgx_urts= dlopen(URTS_LIB, RTLD_GLOBAL|RTLD_NOW);
+		if ( h_libsgx_urts == NULL ) {
+			fprintf(stderr, "%s: %s\n", URTS_LIB, dlerror());
+			l_libsgx_urts= -1;
+		} else l_libsgx_urts= 1;
 	}
 
 	return h_libsgx_urts;
