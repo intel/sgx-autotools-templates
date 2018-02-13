@@ -1,0 +1,9 @@
+include $(top_srcdir)/am/sgx.am
+
+SGX_TRTS_LIB=@SGX_TRTS_LIB@
+SGX_TSERVICE_LIB=@SGX_TSERVICE_LIB@
+
+AM_CFLAGS=-nostdinc -fvisibility=hidden -fpie -fstack-protector
+AM_CPPFLAGS=-I$(SGXSDK_INCDIR) -I$(SGXSDK_INCDIR)/tlibc
+AM_CXXFLAGS=-nostdinc++ 
+
