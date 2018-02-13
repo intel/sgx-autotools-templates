@@ -7,8 +7,8 @@ AC_DEFUN([SGX_INIT],[
 	AC_ARG_ENABLE([sgx-simulation],
 		[AS_HELP_STRING([--enable-sgx-simulation (default: disabled)],
 			[Use Intel SGX in simulation mode])
-		], [_sgxsim=yes], [_sgxsim=no])
-	AS_IF([test "x$_sgxsim" = "xyes"], [
+		], [sgxsim=yes], [sgxsim=no])
+	AS_IF([test "x$sgxsim" = "xyes"], [
 			AC_SUBST(SGX_TRTS_LIB, [sgx_trts_sim])
 			AC_SUBST(SGX_TSERVICE_LIB, [sgx_tservice_sim])
 			AC_SUBST(SGX_UAE_SERVICE_LIB, [sgx_uae_service_sim])
@@ -80,6 +80,8 @@ AC_DEFUN([SGX_INIT],[
 		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"])
 	AC_SUBST(SGX_ENCLAVE_LDADD,
 		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
+
 	AM_CONDITIONAL([ENCLAVE_RELEASE_SIGN], [test "x$_sgxbuild" = "xrelease"])
+	AM_CONDITIONAL([SGX_HW_SIM], [test "x$sgxsim" = "xyes"])
 ])
 
