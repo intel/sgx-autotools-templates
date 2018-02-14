@@ -1,6 +1,6 @@
 SUBDIRS = . EnclaveHash
 
-include ../am/sgx_app.am
+include $(top_srcdir)/am/sgx_app.am
 
 EnclaveHash_u.c EnclaveHash_u.h: EnclaveHash/EnclaveHash.edl
 

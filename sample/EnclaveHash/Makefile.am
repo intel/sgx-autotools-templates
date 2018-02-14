@@ -1,4 +1,4 @@
-include ../../am/sgx_enclave.am
+include $(top_srcdir)/am/sgx_enclave.am
 
 ## The name of your enclave goes here. The expectation is that your
 ## enclave name will also determine the name of your EDL file,
