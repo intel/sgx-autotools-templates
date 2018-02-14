@@ -62,13 +62,13 @@ AC_DEFUN([SGX_INIT],[
 		[test -d /opt/intel/sgxsdk], [SGXSDK=/opt/intel/sgxsdk],
 		[test -d ~/sgxsdk], [SGXSDK=~/sgxsdk],
 		[test -d ./sgxsdk], [SGXSDK=./sgxsdk],
-		[AC_ERROR([Can't detect your Intel SGX SDK installation directory])])
+		[AC_MSG_ERROR([Can't detect your Intel SGX SDK installation directory])])
 	AS_IF([test -d $SGXSDK/lib], [AC_SUBST(SGXSDK_LIBDIR, $SGXSDK/lib)],
         	[test -d $SGXSDK/lib64], [AC_SUBST(SGXSDK_LIBDIR, $SGXSDK/lib64)],
-        	[AC_ERROR(Can't find Intel SGX SDK lib directory)])
+        	[AC_MSG_ERROR(Can't find Intel SGX SDK lib directory)])
 	AS_IF([test -d $SGXSDK/bin/ia32], [AC_SUBST(SGXSDK_BINDIR, $SGXSDK/bin/ia32)],
         	[test -d $SGXSDK/bin/x64], [AC_SUBST(SGXSDK_BINDIR, $SGXSDK/bin/x64)],
-        	[AC_ERROR(Can't find Intel SGX SDK bin directory)])
+        	[AC_MSG_ERROR(Can't find Intel SGX SDK bin directory)])
 	AC_MSG_NOTICE([Found your Intel SGX SDK in $SGXSDK])
 	AC_SUBST(SGXSSL_INCDIR, $SGXSSL/include)
 	AC_SUBST(SGXSSL_LIBDIR, $SGXSSL/lib64)
@@ -76,6 +76,17 @@ AC_DEFUN([SGX_INIT],[
 	AC_SUBST(SGXSDK_INCDIR, $SGXSDK/include)
 	AC_SUBST(SGXSDK)
 
+	AC_SUBST(SGX_TLIB_CPPFLAGS, 
+		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
+	AC_SUBST(SGX_TLIB_CFLAGS,
+		 ["-nostdinc -fvisibility=hidden -fpie -fstack-protector"])
+	AC_SUBST(SGX_TLIB_CXXFLAGS, [-nostdinc++])
+
+	AC_SUBST(SGX_ENCLAVE_CFLAGS,
+		 ["-nostdinc -fvisibility=hidden -fpie -fstack-protector"])
+	AC_SUBST(SGX_ENCLAVE_CPPFLAGS, 
+		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
+	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, [-nostdinc++])
 	AC_SUBST(SGX_ENCLAVE_LDFLAGS,
 		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"])
 <<<<<<< HEAD
