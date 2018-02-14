@@ -38,9 +38,6 @@ int sgx_support = SGX_SUPPORT_UNKNOWN;
 
 int get_sgx_support()
 {
-#ifdef SGX_HW_SIM
-	return SGX_SUPPORT_YES|SGX_SUPPORT_ENABLED;
-#else
 	sgx_device_status_t sgx_device_status;
 
 	if (sgx_support != SGX_SUPPORT_UNKNOWN) return sgx_support;
@@ -78,6 +75,5 @@ int get_sgx_support()
 	sgx_support |= SGX_SUPPORT_ENABLED;
 
 	return sgx_support;
-#endif
 }
 
