@@ -67,11 +67,11 @@ bin_PROGRAMS = storesecret
 ## You can't use $(wildcard ...) with automake so all source files 
 ## have to be explicitly listed.
 
-if SGX_ENABLED
-storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h \
-	main.c sgx_detect_linux.c sgx_stub.c 
-else !SGX_ENABLED
 storesecret_SOURCES = main.c
+if SGX_ENABLED
+storesecret_SOURCES += sgx_detect_linux.c sgx_stub.c
+nodist_storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
+BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 endif
 
 
