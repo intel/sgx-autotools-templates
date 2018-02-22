@@ -8,7 +8,10 @@ AC_DEFUN([SGX_INIT],[
 	AC_ARG_ENABLE([sgx-simulation],
 		[AS_HELP_STRING([--enable-sgx-simulation],
 			[Use Intel SGX in simulation mode. Implies --enable-sgx (default: disabled)])
-		], [sgxsim=${enableval}], [sgxsim=no])
+		], [
+			sgxenable=yes
+			sgxsim=${enableval}
+		], [sgxsim=no])
 
 	AC_ARG_WITH([sgx-build],
 		[AS_HELP_STRING([--with-sgx-build=debug|prerelease|release],
@@ -25,12 +28,9 @@ AC_DEFUN([SGX_INIT],[
 			[Set the path to your Intel SGX SDK directory (defaults to auto-detection)])
 		], [SGXSDK=$withval],[SGXSDK="detect"])
 
-	AS_IF([test "x$sgxsim" = "yes"], [sgxenable=yes])
-	AS_IF([test "x$sgxenable" != "xno"],
-		[ac_cv_enable_sgx=yes], [ac_cv_enable_sgx=no])
+	AM_CONDITIONAL([ENABLE_SGX], [test "x$sgenable" != "xno"])
 
-	AM_CONDITIONAL([SGX_ENABLED], [test "$ac_cv_enable_sgx" = "yes"])
-	AM_COND_IF([SGX_ENABLED], [
+	AS_IF([test "x$sgxenable" != "xno" ], [
 
 	AS_IF([test "x$sgxsim" = "xyes"], [
 			AC_SUBST(SGX_TRTS_LIB, [sgx_trts_sim])
@@ -38,6 +38,7 @@ AC_DEFUN([SGX_INIT],[
 			AC_SUBST(SGX_UAE_SERVICE_LIB, [sgx_uae_service_sim])
 			AC_SUBST(SGX_URTS_LIB, [sgx_urts_sim])
 			AC_SUBST(LIBS_HW_SIMU, ["-lsgx_urts_sim -lsgx_uae_service_sim"])
+			SGX_HW_SIM=1
 			AC_DEFINE(SGX_HW_SIM, 1, [Enable hardware simulation mode])
 		], [
 			AC_SUBST(SGX_TRTS_LIB, [sgx_trts])
@@ -106,10 +107,9 @@ AC_DEFUN([SGX_INIT],[
 	AC_SUBST(SGX_ENCLAVE_LDADD,
 		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
 
-	])
-
 	AM_CONDITIONAL([ENCLAVE_RELEASE_SIGN], [test "x$_sgxbuild" = "xrelease"])
 	AM_CONDITIONAL([SGX_HW_SIM], [test "x$sgxsim" = "xyes"])
-	AC_MSG_NOTICE([enabling SGX... ${ac_cv_enable_sgx}])
+
+	])
 ])
 

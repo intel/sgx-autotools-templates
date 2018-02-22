@@ -1,0 +1,10 @@
+enclave {
+	trusted {
+		public void store_secret([in, string] char *s);
+		public int get_hash([out] unsigned char hash[32]);
+	};
+
+	untrusted {
+	};
+};
+
