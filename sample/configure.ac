@@ -10,8 +10,8 @@ AM_PROG_CC_C_O
 
 SGX_INIT()
 
-AC_CONFIG_HEADERS([sample/config.h])
-AC_CONFIG_FILES([Makefile sample/Makefile sample/EnclaveHash/Makefile])
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([Makefile EnclaveHash/Makefile])
 
 AC_OUTPUT()
 

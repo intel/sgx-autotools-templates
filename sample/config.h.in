@@ -1,4 +1,4 @@
-/* sample/config.h.in.  Generated from configure.ac by autoheader.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Enable debugging */
 #undef DEBUG

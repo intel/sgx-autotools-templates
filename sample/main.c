@@ -81,10 +81,13 @@ int main (int argc, char *argv[])
 
 	status= sgx_create_enclave_search("EnclaveHash.signed.so", SGX_DEBUG_FLAG, &token, &updated, &eid, 0);
 	if ( status != SGX_SUCCESS ) {
-		fprintf(stderr, "sgx_create_enclave: EnclaveHash.signed.so: %08x\n",
-			status);
-		if ( status == SGX_ERROR_ENCLAVE_FILE_ACCESS ) 
+		if ( status == SGX_ERROR_ENCLAVE_FILE_ACCESS ) {
+			fprintf(stderr, "sgx_create_enclave: EnclaveHash.signed.so: file not found\n");
 			fprintf(stderr, "Did you forget to set LD_LIBRARY_PATH?\n");
+		} else {
+			fprintf(stderr, "sgx_create_enclave: EnclaveHash.signed.so: %08x\n",
+				status);
+		}
 		return 1;
 	}
 

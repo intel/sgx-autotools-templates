@@ -1,14 +1,37 @@
-
 AC_DEFUN([SGX_INIT],[
 	AC_ARG_WITH([enclave-libdir],
-		[AS_HELP_STRING([--with-enclave-libdir=path (default: EPREFIX/lib)],
-			[Set the directory where enclave libraries should be installed])
-		], [enclave_libdir=$withval], [enclave_libdir=\$\{exec_prefix\}/lib])
-	AC_SUBST(enclave_libdir)
+		[AS_HELP_STRING([--with-enclave-libdir=path],
+			[Set the directory where enclave libraries should be installed (default: EPREFIX/libexec)])
+		], [enclave_libdir=$withval],
+			[enclave_libdir=\$\{exec_prefix\}/libexec])
+
 	AC_ARG_ENABLE([sgx-simulation],
-		[AS_HELP_STRING([--enable-sgx-simulation (default: disabled)],
-			[Use Intel SGX in simulation mode])
-		], [sgxsim=yes], [sgxsim=no])
+		[AS_HELP_STRING([--enable-sgx-simulation],
+			[Use Intel SGX in simulation mode. Implies --enable-sgx (default: disabled)])
+		], [
+			sgxenable=yes
+			sgxsim=${enableval}
+		], [sgxsim=no])
+
+	AC_ARG_WITH([sgx-build],
+		[AS_HELP_STRING([--with-sgx-build=debug|prerelease|release],
+			[Set Intel SGX build mode (default: debug)])
+		], [_sgxbuild=$withval], [_sgxbuild=debug])
+
+	AC_ARG_WITH([sgxssl],
+		[AS_HELP_STRING([--with-sgxssl=path],
+			[Set the path to your Intel SGX SSL directory (defaults to /opt/intel/sgxssl)])
+		], [SGXSSL=$withval],[SGXSSL=/opt/intel/sgxssl])
+
+	AC_ARG_WITH([sgxsdk],
+		[AS_HELP_STRING([--with-sgxsdk=path],
+			[Set the path to your Intel SGX SDK directory (defaults to auto-detection)])
+		], [SGXSDK=$withval],[SGXSDK="detect"])
+
+	AM_CONDITIONAL([ENABLE_SGX], [test "x$sgenable" != "xno"])
+
+	AS_IF([test "x$sgxenable" != "xno" ], [
+
 	AS_IF([test "x$sgxsim" = "xyes"], [
 			AC_SUBST(SGX_TRTS_LIB, [sgx_trts_sim])
 			AC_SUBST(SGX_TSERVICE_LIB, [sgx_tservice_sim])
@@ -24,10 +47,6 @@ AC_DEFUN([SGX_INIT],[
 			AC_SUBST(SGX_URTS_LIB, [sgx_urts])
 		]
 	)
-	AC_ARG_WITH([sgx-build],
-		[AS_HELP_STRING([--with-sgx-build=debug|prerelease|release (default: debug)],
-			[Set Intel SGX build mode])
-		], [_sgxbuild=$withval], [_sgxbuild=debug])
 	AS_IF([test "x$_sgxbuild" = "xdebug"], [
 			AC_DEFINE(DEBUG, 1, [Enable debugging])
 			AC_SUBST(ENCLAVE_SIGN_TARGET, [signed_enclave_dev])
@@ -50,14 +69,6 @@ AC_DEFUN([SGX_INIT],[
 	)
 	AC_SUBST(SGX_DEBUG_FLAGS, [$_sgxdebug])
 	AS_IF([test "x$SGX_SDK" = "x"], [SGXSDK=detect], [SGXSDK=env])
-	AC_ARG_WITH([sgxssl],
-		[AS_HELP_STRING([--with-sgxssl=path],
-			[Set the path to your Intel SGX SSL directory (defaults to /opt/intel/sgxssl)])
-		], [SGXSSL=$withval],[SGXSSL=/opt/intel/sgxssl])
-	AC_ARG_WITH([sgxsdk],
-		[AS_HELP_STRING([--with-sgxsdk=path],
-			[Set the path to your Intel SGX SDK directory])
-		], [SGXSDK=$withval],[SGXSDK="detect"])
 
 	AS_IF([test "x$SGXSDK" = "xenv"], [],
 		[test "x$SGXSDK" != "xdetect"], [],
@@ -73,6 +84,7 @@ AC_DEFUN([SGX_INIT],[
        		[AC_MSG_ERROR(Can't find Intel SGX SDK bin directory)])
 	AC_MSG_NOTICE([Found your Intel SGX SDK in $SGXSDK])
 
+	AC_SUBST(enclave_libdir)
 	AC_SUBST(SGXSSL_INCDIR, $SGXSSL/include)
 	AC_SUBST(SGXSSL_LIBDIR, $SGXSSL/lib64)
 	AC_SUBST(SGXSSL)
@@ -82,19 +94,22 @@ AC_DEFUN([SGX_INIT],[
 		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
 	AC_SUBST(SGX_TLIB_CFLAGS,
 	 	["-nostdinc -fvisibility=hidden -fpie -fstack-protector"])
-	AC_SUBST(SGX_TLIB_CXXFLAGS, [-nostdinc++])
+	AC_SUBST(SGX_TLIB_CXXFLAGS,
+		["-nostdinc++ -fvisibility=hidden -fpie -fstack-protector"])
 
 	AC_SUBST(SGX_ENCLAVE_CFLAGS,
-	 	["-nostdinc -fvisibility=hidden -fpie -fstack-protector"])
+	 	["-nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector"])
 	AC_SUBST(SGX_ENCLAVE_CPPFLAGS, 
 		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
-	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, [-nostdinc++])
+	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, ["-nostdinc++ -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector"])
 	AC_SUBST(SGX_ENCLAVE_LDFLAGS,
 		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"])
 	AC_SUBST(SGX_ENCLAVE_LDADD,
-		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
+		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
 
 	AM_CONDITIONAL([ENCLAVE_RELEASE_SIGN], [test "x$_sgxbuild" = "xrelease"])
 	AM_CONDITIONAL([SGX_HW_SIM], [test "x$sgxsim" = "xyes"])
+
+	])
 ])
 
