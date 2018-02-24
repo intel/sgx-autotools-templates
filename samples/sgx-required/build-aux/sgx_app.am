@@ -18,6 +18,9 @@ if SGX_ENABLED
 
 AM_CPPFLAGS = -I$(SGXSDK_INCDIR)
 AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
+else
+AM_CPPFLAGS = 
+AM_LDFLAGS = 
 endif
 
 ## These libraries exist in both hardware and simulation (_sim) form,
