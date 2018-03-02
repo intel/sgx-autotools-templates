@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<p>The files in this package provide convenience macros and definitions to integrate Intel Software Guard Extensions (Intel SGX) projects into the GNU build system. It includes the following.</p>
+<p>M4 Macro files:</p>
+<pre><code>  sgx_init.m4
+  sgx_init_optional.m4</code></pre>
+<p>Automake includes:</p>
+<pre><code>  sgx_app.am
+  sgx_enclave.am
+  sgx_tlib.am</code></pre>
+<p>In addition to these template files, two sample projects has been provided that demonstrate their usage. One shows integration for a project that requires Intel SGX, and the other for a project where Intel SGX support is a compile-time option.</p>
+<h2 id="m4-macros">M4 Macros</h2>
+<p>The M$ macro files define the following functions for use in GNU Autoconf configure.ac files:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">File</th>
+<th align="left">Macro</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">sgx_init.m4</td>
+<td align="left">SGX_INIT</td>
+</tr>
+<tr class="even">
+<td align="left">sgx_init_optional.m4</td>
+<td align="left">SGX_INIT_OPTIONAL</td>
+</tr>
+</tbody>
+</table>
+<p>You should invoke either <strong>SGX_INIT</strong> or <strong>SGX_INIT_OPTIONAL</strong>. Do not call both.</p>
+<h3 id="sgx_init">SGX_INIT</h3>
+<p>Set up definitions for a software build that depends on Intel SGX. The project will require the Intel SGX SDK and configure will abort if it's not found.</p>
+<p>It takes the following actions:</p>
+<ul>
+<li>Adds configuration options to the final 'configure' script:</li>
+</ul>
+<pre><code>  --enable-sgx-simulation Use Intel SGX in simulation mode.  (default: disabled)
+
+  --with-enclave-libdir=path
+                          Set the directory where enclave libraries should be
+                          installed (default: EPREFIX/libexec)
+
+  --with-sgx-build=debug|prerelease|release
+                          Set Intel SGX build mode (default: debug)
+
+  --with-sgxssl=path      Set the path to your Intel SGX SSL directory
+                          (defaults to /opt/intel/sgxssl)
+
+  --with-sgxsdk=path      Set the path to your Intel SGX SDK directory
+                          (defaults to auto-detection)</code></pre>
+<ul>
+<li><p>Determines whether or not Intel SGX support should be enabled in the build.</p>
+<ul>
+<li><p>If <strong>SGX_INIT</strong> was invoked directly from configure.ac, then Intel SGX support is enabled.</p></li>
+<li><p>If <strong>SGX_INIT_OPTIONAL</strong> was invoked instead, then Intel SGX support is enabled if and only if <code>--enable-sgx</code> was provided on the command line.</p></li>
+</ul></li>
+<li><p>Defines the C preprocessor symbol HAVE_SGX if Intel SGX support is enabled. Otherwise, it is left undefined.</p></li>
+<li><p>Sets Automake conditionals.</p></li>
+<li><p>Attempts to discover the location of the Intel SGX SDK using the following procedure:</p>
+<ol style="list-style-type: decimal">
+<li><p>If <code>--with-sgxsdk-path=path</code> is provided, use that path.</p></li>
+<li><p>If the <strong>$SGX_SDK</strong> enviornment variable is set, use that path.</p></li>
+<li>Look in the following directories (in this order):
+<ol style="list-style-type: decimal">
+<li><code>/opt/intel/sgxsdk</code></li>
+<li><code>$HOME/sgxsdk</code></li>
+<li><code>./sgxsdk</code></li>
+</ol></li>
+</ol></li>
+<li><p>If Intel SGX support is enabled, sets Makefile substitution variables.</p></li>
+</ul>
+<h3 id="sgx_init_optional">SGX_INIT_OPTIONAL</h3>
+<p>This macro adds a configuration option to specifically enable SGX support in the software project at build time, and SGX support is disabled by default. It is intended for packages where Intel SGX is not required, and should be a configuration option prior to compilation.</p>
+<p>It takes the following actions:</p>
+<ul>
+<li>Adds a command line argument to enable SGX support in the build.</li>
+</ul>
+<pre><code>      --enable-sgx        Build with/without Intel SGX support (default: disabled)</code></pre>
+<ul>
+<li>Defines the following cache variable, which is set to either &quot;yes&quot; or &quot;no&quot;. This variable can be tested in configure.ac in order to modify the final build configuration.</li>
+</ul>
+<pre><code>       $ac_cv_enable_sgx </code></pre>
+<ul>
+<li>Invokes the <strong>SGX_INIT</strong> macro</li>
+</ul>
+<hr />
+<h2 id="makefile-substitution-variables">Makefile substitution variables</h2>
+<p><strong>Intel SGX SDK paths</strong></p>
+<pre><code>        SGXSDK
+        SGXSDK_BINDIR
+        SGXSDK_INCDIR
+        SGXSDK_LIBDIR</code></pre>
+<p><strong>Intel SGX SSL paths</strong></p>
+<pre><code>        SGXSSL
+        SGXSSL_BINDIR
+        SGXSSL_INCDIR
+        SGXSSL_LIBDIR</code></pre>
+<p><strong>Enclave library installation path</strong></p>
+<pre><code>        enclave_libdir</code></pre>
+<p><strong>Flags for compiling and linking an Intel SGX enclave</strong></p>
+<pre><code>        SGX_ENCLAVE_CFLAGS
+        SGX_ENCLAVE_CPPFLAGS
+        SGX_ENCLAVE_CXXFLAGS
+        SGX_ENCLAVE_LDFLAGS
+        SGX_ENCLAVE_LDADD</code></pre>
+<p><strong>Flags for compiling an Intel SGX trusted library</strong></p>
+<pre><code>        SGX_TLIB_CFLAGS
+        SGX_TLIB_CPPFLAGS
+        SGX_TLIB_CXXFLAGS</code></pre>
+<p><strong>Trusted runtime library names (to support h/w and simulation modes)</strong></p>
+<pre><code>        SGX_TRTS_LIB
+        SGX_TSERVICE_LIB</code></pre>
+<p><strong>Untrusted runtime library names (to support h/w and simulation modes)</strong></p>
+<pre><code>        SGX_UAE_SERVICE_LIB
+        SGX_URTS_LIB</code></pre>
+<p><strong>Indicating use of Intel SGX simulation mode</strong></p>
+<pre><code>        SGX_HW_SIM</code></pre>
+<hr />
+<h2 id="automake-conditionals">Automake Conditionals</h2>
+<p><strong>SGX_ENABLED</strong></p>
+<blockquote>
+<p>Set to 1 if the build should utilize Intel SGX, and 0 if it should not.</p>
+</blockquote>
+<p><strong>SGX_HW_SIM</strong></p>
+<blockquote>
+<p>Set to 1 if the final application should use Intel SGX in simulation mode (via <code>--enable-sgx-simulation</code>)</p>
+</blockquote>
+<p><strong>ENCLAVE_RELEASE_SIGN</strong></p>
+<blockquote>
+<p>Set to 1 if the enclave is being built in release mode. This is used internally in the automake includes.</p>
+</blockquote>
+<hr />
+<h2 id="typical-usage">Typical usage</h2>
+<h3 id="configure.ac">configure.ac</h3>
+<p>In your <code>configure.ac</code> file you call one of either <strong>SGX_INIT</strong> or <strong>SGX_INIT_OPTIONAL</strong>. <em>Do not call both</em>. The former is for software that must have Intel SGX available in order to <em>compile</em>. Generally this is reserved for cases where the application needs Intel SGX at runtime in order to function. The latter is for software that has to run on multiple platforms including those which are not supported by Intel SGX (including, but not limited to, non-Intel CPU's).</p>
+<p>The <strong>SGX_INIT_OPTIONAL</strong> macro should be followed by <strong>AS_IF</strong> to check if <strong>$ac_cv_enable_sgx</strong> is set.</p>
+<pre><code>SGX_INIT_OPTIONAL()
+
+AS_IF([test &quot;x$ac_cv_enable_sgx&quot; = &quot;xyes&quot;], [
+    AC_CONFIG_FILES([Enclave/Makefile])
+    AC_DEFINE(HAVE_SGX, 1, [Build with SGX support])
+],[
+    dnl Actions to take if Intel SGX is not compiled in
+]</code></pre>
+<h3 id="makefile.am">Makefile.am</h3>
+<p>Automake includes are provided to assist the creation of enclaves, trusted libraries, and enclave applications.</p>
+<p>The samples in this package are generously commented to demonstrate their usage.</p>
+<h4 id="building-enclaves">Building Enclaves</h4>
+<p>Include <code>sgx_enclave.am</code> in your Makefile.am to build an enclave. This should be included before setting any automake variables.</p>
+<p>Enclaves are essentially shared objects, but Automake doesn't provide a convenience definition for building a shared object without using libtool. Libtool is not an appropriate means of building an Intel SGX enclave because of assumptions it makes about how shared objects should be compiled, and it takes away direct control of the compiler and linker flags. To solve this problem, Intel SGX enclaves are built using the PROGRAM rules with EXEEXT set to &quot;.so&quot;.</p>
+<p>Your Makefile.am must define these three variables:</p>
+<p><strong>ENCLAVE</strong></p>
+<blockquote>
+<p>The name of your enclave</p>
+</blockquote>
+<p><strong>ENCLAVE_CONFIG</strong></p>
+<blockquote>
+<p>The name of your enclave configuration file. A simple config file will be created for you at build time if you don't have one.</p>
+</blockquote>
+<p><strong>ENCLAVE_KEY</strong></p>
+<blockquote>
+<p>The name of the private key file to use when building and signing <em>debug mode enclaves</em>. (Release mode enclaves must use a two-step signing procedure.)</p>
+</blockquote>
+<p>If you need to include additional trusted libraries to build your enclave, add the linker flags (<code>-lsomelib</code>) to <strong>SGX_EXTRA_TLIBS</strong>. This Makefile variable gets substituted into the final link command line in order to include it in the library list between the <code>--start-group</code> and <code>--end-group</code> flags. Do not use <strong>target_LDADD</strong> for this purpose.</p>
+<p>A pattern rule exists to create the proxy routines from your EDL file, but you'll need to add them to the _SOURCES target manually. For example, if your enclave is named MyEnclave, you would say:</p>
+<pre><code>   myenclave_SOURCES = MyEnclave_t.c MyEnclave_t.h ...</code></pre>
+<p>This is a requirement of Automake, which needs to know, statically, which source files are needed by a build target. (Alternatively, you could define these with the BUILTSOURCES target, but that is a matter of personal preference.)</p>
+<p>You will also need to add the proxy functions to the CLEANFILES target so they are removed with a <code>make clean</code>.</p>
+<pre><code>   CLEANFILES = MyEnclave_t.c MyEnclave_t.h</code></pre>
+<p>These are created automatically for you using a pattern rule,</p>
+<p>The Automake include also sets flags for the preprocessor, compilers and linker needed to build hte enclave. By default, the Intel SGD SDK include directory and library directory are added to the preprocessor and linker search paths.</p>
+<pre><code>AM_CPPFLAGS
+AM_CFLAGS
+AM_CXXFLAGS
+AM_LDFLAGS</code></pre>
+<p>If you need additional flags in your <code>Makefile.am</code>, use += to <em>add</em> flags, not replace them. For example:</p>
+<pre><code>   AM_CXXFLAGS += -std=c++11</code></pre>
+<h4 id="building-trusted-libraries">Building Trusted Libraries</h4>
+<p>Include <code>sgx_tlib.am</code> in your Makefile.am to build a trusted library. This should be included before setting any automake variables.</p>
+<p>A trusted library is just a static library compiled with enclave-specific flags. Your build target should use the LIBRARIES rules.</p>
+<pre><code>   lib_LIBRARIES = mytlib.a
+   mytlib_a_SOURCES = ...</code></pre>
+</body>
+</html>

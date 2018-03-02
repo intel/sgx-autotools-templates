@@ -77,6 +77,6 @@ BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 ## Use the variables, not the actualy library names to ensure these
 ## targets work on simulation builds.
 
-storesecret_LDADD=-l$(SGX_URTS_LIB) -ldl -l:libsgx_capable.a
+storesecret_LDADD=-l$(SGX_URTS_LIB) -ldl -l:libsgx_capable.a -lpthread
 
 

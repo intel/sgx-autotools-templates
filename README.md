@@ -1,3 +1,4 @@
+# Intel SGX Autotools Config
 
 The files in this package provide convenience macros and definitions
 to integrate Intel Software Guard Extensions (Intel SGX) projects into
@@ -24,7 +25,7 @@ is a compile-time option.
 
 ## M4 Macros 
 
-The M$ macro files define the following functions for use in GNU Autoconf
+The M4 macro files define the following functions for use in GNU Autoconf
 configure.ac files:
 
 | File        | Macro    |
@@ -37,8 +38,8 @@ both.
 
 ### SGX_INIT
 
-Set up definitions for a software build that depends on Intel SGX.
-The project will require the Intel SGX SDK and configure will 
+Set up definitions for a software build that requires the use of Intel SGX.
+The project will require that Intel SGX SDK be installed, and configure will 
 abort if it's not found.
 
 It takes the following actions:
@@ -71,7 +72,7 @@ It takes the following actions:
     * If **SGX_INIT_OPTIONAL** was invoked instead, then Intel SGX support is
  enabled if and only if `--enable-sgx` was provided on the command line.
 
-* Defines the C preprocessor symbol HAVE_SGX if Intel SGX support
+* Defines the C preprocessor symbol **HAVE_SGX** if Intel SGX support
    is enabled. Otherwise, it is left undefined.
 
 * Sets Automake conditionals.
@@ -84,18 +85,21 @@ procedure:
     2. If the **$SGX_SDK** enviornment variable is set, use that path.
 
     3. Look in the following directories (in this order):
+
         1) `/opt/intel/sgxsdk`
+
         2) `$HOME/sgxsdk`
+
         3) `./sgxsdk`
 
-* If Intel SGX support is enabled, sets Makefile substitution variables.
+* Sets Makefile substitution variables.
 
 ### SGX_INIT_OPTIONAL
 
-This macro adds a configuration option to specifically enable SGX support
-in the software project at build time, and SGX support is disabled by
-default. It is intended for packages where Intel SGX is not required,
-and should be a configuration option prior to compilation. 
+This macro adds a configuration option to enable SGX support in projects
+at build time. It is intended for packages where Intel SGX is not required,
+and thus provided as a configuration option prior to compilation. Intel
+SGX support is _disabled_ by default. 
 
 It takes the following actions:
 
@@ -115,7 +119,7 @@ It takes the following actions:
 ```
 
 
-* Invokes the **SGX_INIT** macro
+* Invokes the **SGX_INIT** macro.
 
 ---
 
@@ -181,17 +185,19 @@ It takes the following actions:
 
 **SGX_ENABLED**
 
-> Set to 1 if the build should utilize Intel SGX, and 0 if it should not.
+  Set to 1 if the build should utilize Intel SGX, and 0 if it should not.
+
 
 **SGX_HW_SIM**
 
-> Set to 1 if the final application should use Intel SGX in simulation
-> mode (via `--enable-sgx-simulation`)
+  Set to 1 if the final application should use Intel SGX in simulation
+  mode (via `--enable-sgx-simulation`)
+
 
 **ENCLAVE_RELEASE_SIGN**
 
-> Set to 1 if the enclave is being built in release mode. This is used
-> internally in the automake includes.
+  Set to 1 if the enclave is being built in release mode. This is used
+  internally in the automake includes.
 
 ---
 
@@ -230,7 +236,7 @@ trusted libraries, and enclave applications.
 The samples in this package are generously commented to demonstrate
 their usage.
 
-#### Building Enclaves
+#### Building Enclaves with Automake
 
 Include `sgx_enclave.am` in your Makefile.am to build an enclave. This
 should be included before setting any automake variables.
@@ -241,28 +247,147 @@ libtool. Libtool is not an appropriate means of building an Intel SGX
 enclave because of assumptions it makes about how shared objects should
 be compiled, and it takes away direct control of the compiler and linker
 flags.  To solve this problem, Intel SGX enclaves are built using
-the PROGRAM rules with EXEEXT set to ".so".
+the libexec_PROGRAM rule with EXEEXT set to ".so" (this rule is defined
+in `sgx_enclave.am`).
 
-Your Makefile.am will have to define some key variables:
+----
+
+Your Makefile.am must define these three variables:
 
 **ENCLAVE**
 
-> The name of your enclave
+  The name of your enclave
 
 **ENCLAVE_CONFIG**
 
-> The name of your enclave configuration file. A simple config file will 
-> be created for you at build time if you don't have one.
+  The name of your enclave configuration file. A simple config file will 
+  be created for you at build time if you don't have one.
 
 **ENCLAVE_KEY**
 
-> The name of the private key file to use when building and signing _debug
-> mode enclaves_. (Release mode enclaves must use a two-step signing 
-> procedure.)
+  The name of the private key file to use when building and signing _debug
+  mode enclaves_. (Release mode enclaves must use a two-step signing 
+  procedure.) If your application does not have a key then one will be 
+  randomly generated at build time.
+
+----
 
 If you need to include additional trusted libraries to build your enclave,
 add the linker flags (`-lsomelib`) to **SGX_EXTRA_TLIBS**. This Makefile
 variable gets substituted into the final link command line in order
 to include it in the library list between the `--start-group` and
 `--end-group` flags.  Do not use **target_LDADD** for this purpose.
+
+A pattern rule exists to create the proxy routines from your EDL file,
+but you'll need to add them to the _SOURCES target manually. For example,
+if your enclave is named MyEnclave, you would say:
+
+```
+   myenclave_SOURCES = MyEnclave_t.c MyEnclave_t.h ...
+```
+
+This is a requirement of Automake, which needs to know, statically,
+which source files are needed by a build target. (Alternatively, you
+could define these with the BUILTSOURCES target, but that is a matter
+of personal preference.)
+
+You will also need to add the proxy functions to the CLEANFILES target
+so they are removed with a `make clean`.
+
+```
+   CLEANFILES = MyEnclave_t.c MyEnclave_t.h
+```
+
+These are created automatically for you using a pattern rule, 
+
+The Automake include also sets flags for the preprocessor, compilers
+and linker needed to build the enclave. By default, the Intel SGD SDK
+include directory and library directory are added to the preprocessor
+and linker search paths.
+
+```
+AM_CPPFLAGS
+AM_CFLAGS
+AM_CXXFLAGS
+AM_LDFLAGS
+```
+
+If you need additional flags in your `Makefile.am`, use += to _add_
+flags, not replace them. For example:
+
+```
+   AM_CXXFLAGS += -std=c++11
+```
+
+#### Building Trusted Libraries with Automake
+
+Include `sgx_tlib.am` in your Makefile.am to build a trusted library. This
+should be included before setting any automake variables.
+
+A trusted library is just a static library compiled with enclave-specific
+flags. Your build target should use the lib_LIBRARIES rule.
+
+```
+   lib_LIBRARIES = mytlib.a
+   mytlib_a_SOURCES = ...
+```
+
+The Automake include also sets flags for the preprocessor and
+compilers needed to build the library. By default, the Intel SGD SDK
+include directory and library directory are added to the preprocessor
+search paths.
+
+```
+AM_CPPFLAGS
+AM_CFLAGS
+AM_CXXFLAGS
+```
+
+#### Building Enclave Applications with Automake
+
+Include `sgx_app.am` in your Makefile.am to build an enclave. This
+should be included before setting any automake variables.
+
+Enclave applications build like any other application, and should use 
+the bin_PROGRAMS rule. 
+
+```
+bin_PROGRAMS = myapp
+```
+
+The untrusted proxy functions automatically generated by edger8r have to 
+be included in the list of source files, and because Automake must know
+the list of source files _statically_ at build time, they have to be
+listed explicitly.
+
+
+```
+myapp_SOURCES = main.c 
+nodist_myapp_SOURCES = MyEnclave_u.c MyEnclave_u.h
+BUILT_SOURCES = MyEnclave_u.c MyEnclave_u.h
+CLEANFILES = MyEnclave_u.c MyEnclave_u.h
+```
+
+A pattern rule is defined in `sgx_app.am` to make the proxy functions from
+the EDL file. That requires the EDL file to be in the build directly. You 
+can either symlink it in your project directly, or define a rule for 
+_make_ to do that for you (you'll need to add the symlink to the CLEANFILES
+variable if you opt for this approach):
+
+```
+MyEnclave.edl: MyEnclave/MyEnclave.edl
+        ln -s $?
+
+CLEANFILES = MyEnclave_u.c MyEnclave_u.h MyEnclave.edl
+```
+
+The Automake include also sets flags for the preprocessor and linker 
+that are needed to build an enclave application. The Intel SGD SDK
+include directory and library directory are added to the preprocessor
+and linker search paths.
+
+```
+AM_CPPFLAGS
+AM_LDFLAGS
+```
 

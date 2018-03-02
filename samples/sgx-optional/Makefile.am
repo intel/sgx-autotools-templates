@@ -28,6 +28,8 @@ include $(top_srcdir)/build-aux/sgx_app.am
 
 if SGX_ENABLED
 SUBDIRS = EnclaveHash
+else
+DIST_SUBDIRS = EnclaveHash
 endif
 
 
@@ -88,7 +90,6 @@ endif
 ## targets work on simulation builds.
 
 if SGX_ENABLED
-storesecret_LDADD=-l$(SGX_URTS_LIB) -ldl -l:libsgx_capable.a
+storesecret_LDADD=-l$(SGX_URTS_LIB) -ldl -l:libsgx_capable.a -lpthread
 endif
-
 

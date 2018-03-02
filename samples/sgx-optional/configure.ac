@@ -11,7 +11,6 @@ AM_PROG_CC_C_O
 SGX_INIT_OPTIONAL()
 
 AS_IF([test "x$ac_cv_enable_sgx" = "xyes"], [
-	AC_CONFIG_FILES([EnclaveHash/Makefile])
 	AC_DEFINE(HAVE_SGX, 1, [Build with SGX support])
 ],[
 	dnl AC_MSG_CHECKING([openssl])
@@ -23,7 +22,13 @@ AS_IF([test "x$ac_cv_enable_sgx" = "xyes"], [
 	])
 ])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
+
+dnl  EnclaveHash/Makefile has to be here for 'make dist', 'make distclean'
+dnl  and 'make maintainer-clean' to work, even if SGX is disabled. The
+dnl  conditional in Makefile.am takes care of whether or not to include
+dnl  it in the build.
+
+AC_CONFIG_FILES([Makefile EnclaveHash/Makefile])
 
 AC_OUTPUT()
 
