@@ -52,6 +52,7 @@ endif
 ## AM_CFLAGS = 
 ## AM_CXXFLAGS = 
 
+AM_CPPFLAGS += -fno-builtin-memset
 
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.

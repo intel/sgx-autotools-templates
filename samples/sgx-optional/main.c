@@ -32,11 +32,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "config.h"
+
 #ifdef HAVE_SGX
-#include "EnclaveHash_u.h"
-#include "sgx_stub.h"
-#include <sgx_urts.h>
+# include "EnclaveHash_u.h"
+# include "sgx_stub.h"
+# include <sgx_urts.h>
+#else
+# include <openssl/sha.h>
 #endif
+
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>

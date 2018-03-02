@@ -391,3 +391,41 @@ AM_CPPFLAGS
 AM_LDFLAGS
 ```
 
+----
+## Samples
+
+Two code samples are included to demonstrate how these templates can be
+used to build an Intel SGX application. Both samples build the same
+application: a program that takes a secret from the command line,
+stashes it in its secret "store", and returns a hash of the secret to
+be printed to STDOUT.
+
+These samples are independent of one another, so each must be built 
+separately. 
+
+```
+    $ configure
+	$ make
+```
+
+**Note that these builds _do not_ place the signed enclave in the same
+directory as the application binary**, so you'll either need to set
+LD_LIBRARY_PATH or copy them manually.
+
+### samples/sgx-required
+
+This build of the _storesecret_ application requires Intel SGX. It can
+be built to run in simulation mode on non-Intel SGX hardware, though
+simulation mode will not provide any hardware protection.
+
+### samples/sgx-optional
+
+This build of _storesecret_ does not require the Intel SGX SDK. By 
+default, it does not use Intel SGX and it stores its secret insecurely
+in main memory.
+
+If Intel SGX is enabled by supplying `--enable-sgx` to _configure_ the
+build will use Intel SGX. It can also be built in simulation mode
+via `--enable-sgx-simulation` though of course simulation mode does not
+provide any hardware protection.
+
