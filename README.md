@@ -404,7 +404,8 @@ These samples are independent of one another, so each must be built
 separately. 
 
 ```
-    $ configure
+    $ ./bootstrap
+    $ ./configure
 	$ make
 ```
 
