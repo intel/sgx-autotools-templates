@@ -1,4 +1,2 @@
 autom4te.cache
-configure
-Makefile.in
-*/Makefile.in
+*/config.h.in~
