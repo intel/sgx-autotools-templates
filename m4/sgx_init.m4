@@ -152,5 +152,16 @@ AC_DEFUN([SGX_INIT],[
 	AM_CONDITIONAL([ENCLAVE_RELEASE_SIGN], [test "x$_sgxbuild" = "xrelease"])
 	AM_CONDITIONAL([SGX_HW_SIM], [test "x$sgxsim" = "xyes"])
 	AC_MSG_NOTICE([enabling SGX... ${ac_cv_enable_sgx}])
+	ac_cv_sgx_init=yes
+])
+
+# SGX_IF_ENABLED(ACTION_IF_TRUE, ACTION_IF_FALSE)
+# -----------------------------------------------
+# Execute ACTION_IF_TRUE if SGX is enabled for the build
+# (SGX_INIT was called in configure.ac, or SGX_INIT_OPTIONAL
+# was called and the user supplied --enable-sgx on the
+# command line).
+AC_DEFUN([SGX_IF_ENABLED],[
+	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"], [$1], [$2])
 ])
 

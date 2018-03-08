@@ -81,26 +81,61 @@ AC_DEFUN([SGX_INIT],[
 		[test -d ~/sgxsdk], [SGXSDK=~/sgxsdk],
 		[test -d ./sgxsdk], [SGXSDK=./sgxsdk],
 		[AC_MSG_ERROR([Can't detect your Intel SGX SDK installation directory])])
-	AS_IF([test -d $SGXSDK/lib], [AC_SUBST(SGXSDK_LIBDIR, $SGXSDK/lib)],
-       		[test -d $SGXSDK/lib64], [AC_SUBST(SGXSDK_LIBDIR, $SGXSDK/lib64)],
-       		[AC_MSG_ERROR(Can't find Intel SGX SDK lib directory)])
-	AS_IF([test -d $SGXSDK/bin/ia32], [AC_SUBST(SGXSDK_BINDIR, $SGXSDK/bin/ia32)],
-       		[test -d $SGXSDK/bin/x64], [AC_SUBST(SGXSDK_BINDIR, $SGXSDK/bin/x64)],
-       		[AC_MSG_ERROR(Can't find Intel SGX SDK bin directory)])
+
+	AC_SUBST(SGXSDK)
+	AC_SUBST(SGXSDK_INCDIR, $SGXSDK/include)
+
+	ac_cv_sgx_sdk=$SGXSDK
+	ac_cv_sgx_sdk_incdir=$SGXSDK/include
+
+	AS_IF([test -d $SGXSDK/lib], [
+		AC_SUBST(SGXSDK_LIBDIR, $SGXSDK/lib)
+		ac_cv_sgx_sdk_libdir=$SGXSDK/lib
+	], [test -d $SGXSDK/lib64], [
+		AC_SUBST(SGXSDK_LIBDIR, $SGXSDK/lib64)
+		ac_cv_sgx_sdk_libdir=$SGXSDK/lib64
+	], [
+		AC_MSG_ERROR(Can't find Intel SGX SDK lib directory)
+	])
+
+	AS_IF([test -d $SGXSDK/bin/ia32], [
+		ac_cv_sgx_sdk_bindir=$SGXSDK/bin
+		AC_SUBST(SGXSDK_BINDIR, $SGXSDK/bin/ia32)
+	], [test -d $SGXSDK/bin/x64], [
+		ac_cv_sgx_sdk_bindir=$SGXSDK/bin/x64
+		AC_SUBST(SGXSDK_BINDIR, $SGXSDK/bin/x64)
+	], [
+		AC_MSG_ERROR(Can't find Intel SGX SDK bin directory)
+	])
+
 	AC_MSG_NOTICE([Found your Intel SGX SDK in $SGXSDK])
 
 	AC_SUBST(enclave_libdir)
+	AC_SUBST(SGXSSL)
 	AC_SUBST(SGXSSL_INCDIR, $SGXSSL/include)
 	AC_SUBST(SGXSSL_LIBDIR, $SGXSSL/lib64)
-	AC_SUBST(SGXSSL)
-	AC_SUBST(SGXSDK_INCDIR, $SGXSDK/include)
-	AC_SUBST(SGXSDK)
-	AC_SUBST(SGX_TLIB_CPPFLAGS, 
-		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
+
+	dnl These are not quite the same as the Makefile substitution variables.
+	dnl They are set in a manner to allow autoconf to use them when running
+	dnl a compiler or linker for things like header and function checks.
+
+	ac_cv_sgx_tlib_cflags="-nostdinc -fvisibility=hidden -fpie -fstack-protector"
+	ac_cv_sgx_tlib_cppflags="-I${ac_cv_sgx_sdk_incdir} -I${ac_cv_sgx_sdk_incdir}/tlibc"
+	ac_cv_sgx_tlib_cxxflags="-nostdinc++ -fvisibility=hidden -fpie -fstack-protector"
+	ac_cv_sgx_enclave_ldflags="-nostdlib -nodefaultlibs -nostartfiles -L${ac_cv_sgx_sdk_libdir}"
+	ac_cv_sgx_enclave_ldadd="-Wl,--no-undefined -Wl,--whole-archive -lsgx_trts -Wl,--no-whole-archive -Wl,--start-group -lsgx_tstdc -lsgx_tcrypto -lsgx_tservice_lib -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"
+
+
+	dnl Substitutions for building a trusted library
+
 	AC_SUBST(SGX_TLIB_CFLAGS,
-	 	["-nostdinc -fvisibility=hidden -fpie -fstack-protector"])
+		["-nostdinc -fvisibility=hidden -fpie -fstack-protector"])
+	AC_SUBST(SGX_TLIB_CPPFLAGS,
+		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
 	AC_SUBST(SGX_TLIB_CXXFLAGS,
 		["-nostdinc++ -fvisibility=hidden -fpie -fstack-protector"])
+
+	dnl Substitutions for building an enclave
 
 	AC_SUBST(SGX_ENCLAVE_CFLAGS,
 	 	["-nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector"])
@@ -117,5 +152,16 @@ AC_DEFUN([SGX_INIT],[
 	AM_CONDITIONAL([ENCLAVE_RELEASE_SIGN], [test "x$_sgxbuild" = "xrelease"])
 	AM_CONDITIONAL([SGX_HW_SIM], [test "x$sgxsim" = "xyes"])
 	AC_MSG_NOTICE([enabling SGX... ${ac_cv_enable_sgx}])
+	ac_cv_sgx_init=yes
+])
+
+# SGX_IF_ENABLED(ACTION_IF_TRUE, ACTION_IF_FALSE)
+# -----------------------------------------------
+# Execute ACTION_IF_TRUE if SGX is enabled for the build
+# (SGX_INIT was called in configure.ac, or SGX_INIT_OPTIONAL
+# was called and the user supplied --enable-sgx on the
+# command line).
+AC_DEFUN([SGX_IF_ENABLED],[
+	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"], [$1], [$2])
 ])
 
