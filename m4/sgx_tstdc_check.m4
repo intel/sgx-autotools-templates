@@ -1,3 +1,37 @@
+# SGX_TSTDC_CHECK_TYPE([TYPE], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# ----------------------------------------------------------------------------------
+# Works like AC_CHECK_TYPE only it uses includes from the
+# SGX trusted C headers, not in the standard C library headers.
+# We do this by saving the old compiler and preprocessor flags
+# and replacing them with the flags used to compile a trusted
+# library.
+AC_DEFUN([SGX_TSTDC_CHECK_TYPE], [
+	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
+		_SGX_TSTDC_COMPILER_FLAGS_SET
+		AC_CHECK_TYPE([$1],[$2],[$3],[$4])
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
+	],[
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_TYPE] on build without Intel SGX])
+	])
+]) # SGX_TSTDC_CHECK_TYPE
+
+# SGX_TSTDC_CHECK_TYPES([TYPES], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# ----------------------------------------------------------------------------------
+# Works like AC_CHECK_TYPE only it uses includes from the
+# SGX trusted C headers, not in the standard C library headers.
+# See SGX_TSTDC_CHECK_TYPE
+AC_DEFUN([SGX_TSTDC_CHECK_TYPES], [
+	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
+		_SGX_TSTDC_COMPILER_FLAGS_SET
+		AC_CHECK_TYPES([$1],[$2],[$3],[$4])
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
+	],[
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_TYPES] on build without Intel SGX])
+	])
+]) # SGX_TSTDC_CHECK_TYPES
+
+
+
 # SGX_TSTDC_CHECK_DECL([SYMBOL], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
 # ------------------------------------------------------------------------
 # Works like AC_CHECK_DECL only it looks for headers in the 
@@ -7,29 +41,43 @@
 # library.
 AC_DEFUN([SGX_TSTDC_CHECK_DECL], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
-		_SGX_TSTDC_CHECK_HEADER_SET_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_SET
 		AC_CHECK_DECL([$1],[$2],[$3],[$4])
-		_SGX_TSTDC_CHECK_HEADER_RESTORE_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
 	],[
-		AC_MSG_ERROR([Tried to call [SGX_TRTS_CHECK_DECL] on build without Intel SGX])
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_DECL] on build without Intel SGX])
 	])
 ]) # SGX_TSTDC_CHECK_DECL
 
-# SGX_TSTDC_CHECK_DECLS([SYMBOL], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# SGX_TSTDC_CHECK_DECLS([SYMBOLS], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
 # ------------------------------------------------------------------------
 # Works like AC_CHECK_DECLS only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
 # See SGX_TSTDC_CHECK_DECL
 AC_DEFUN([SGX_TSTDC_CHECK_DECLS], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
-		_SGX_TSTDC_CHECK_HEADER_SET_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_SET
 		AC_CHECK_DECLS([$1],[$2],[$3],[$4])
-		_SGX_TSTDC_CHECK_HEADER_RESTORE_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
 	],[
-		AC_MSG_ERROR([Tried to call [SGX_TRTS_CHECK_DECLS] on build without Intel SGX])
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_DECLS] on build without Intel SGX])
 	])
 ]) # SGX_TSTDC_CHECK_DECLS
 
+# SGX_TSTDC_CHECK_DECLS_ONCE([SYMBOLS])
+# -------------------------------------
+# Works like AC_CHECK_DECLS_ONCE only it looks for headers in the 
+# SGX trusted C headers, not in the standard C library headers.
+# See SGX_TSTDC_CHECK_DECL
+AC_DEFUN([SGX_TSTDC_CHECK_DECLS_ONCE], [
+	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
+		_SGX_TSTDC_COMPILER_FLAGS_SET
+		AC_CHECK_DECLS_ONCE([$1])
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
+	],[
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_DECLS_ONCE] on build without Intel SGX])
+	])
+]) # SGX_TSTDC_CHECK_DECLS
 
 # SGX_TSTDC_CHECK_HEADER(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 # ------------------------------------------------------------------------
@@ -40,11 +88,11 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECLS], [
 # library.
 AC_DEFUN([SGX_TSTDC_CHECK_HEADER], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
-		_SGX_TSTDC_CHECK_HEADER_SET_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_SET
 		AC_CHECK_HEADER([$1],[$2],[$3])
-		_SGX_TSTDC_CHECK_HEADER_RESTORE_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
 	],[
-		AC_MSG_ERROR([Tried to call [SGX_TRTS_CHECK_HEADER] on build without Intel SGX])
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_HEADER] on build without Intel SGX])
 	])
 ]) # SGX_TSTDC_CHECK_HEADER
 
@@ -55,11 +103,11 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADER], [
 # See SGX_TSTDC_CHECK_HEADER
 AC_DEFUN([SGX_TSTDC_CHECK_HEADERS], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
-		_SGX_TSTDC_CHECK_HEADER_SET_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_SET
 		AC_CHECK_HEADERS([$1],[$2],[$3])
-		_SGX_TSTDC_CHECK_HEADER_RESTORE_FLAGS
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
 	],[
-		AC_MSG_ERROR([Tried to call [SGX_TRTS_CHECK_HEADERS] on build without Intel SGX])
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_HEADERS] on build without Intel SGX])
 	])
 ]) # SGX_TSTDC_CHECK_HEADERS
 
@@ -76,11 +124,11 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADERS], [
 # --no-undefined that links against sgx_tstdc.
 AC_DEFUN([SGX_TSTDC_CHECK_FUNC], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
-		_SGX_TSTDC_CHECK_FUNC_SET_FLAGS
+		_SGX_TSTDC_BUILD_FLAGS_SET
 		AC_CHECK_FUNC([$1],[$2],[$3])
-		_SGX_TSTDC_CHECK_FUNC_RESTORE_FLAGS
+		_SGX_TSTDC_BUILD_FLAGS_RESTORE
 	],[
-		AC_MSG_ERROR([Tried to call [SGX_TRTS_CHECK_FUNC] on build without Intel SGX])
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_FUNC] on build without Intel SGX])
 	])
 ]) # SGX_TSTDC_CHECK_FUNC
 
@@ -91,15 +139,15 @@ AC_DEFUN([SGX_TSTDC_CHECK_FUNC], [
 # SGX_TSTDC_CHECK_FUNC.
 AC_DEFUN([SGX_TSTDC_CHECK_FUNCS], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
-		_SGX_TSTDC_CHECK_FUNC_SET_FLAGS
+		_SGX_TSTDC_BUILD_FLAGS_SET
 		AC_CHECK_FUNCS([$1],[$2],[$3])
-		_SGX_TSTDC_CHECK_FUNC_RESTORE_FLAGS
+		_SGX_TSTDC_BUILD_FLAGS_RESTORE
 	],[
-		AC_MSG_ERROR([Tried to call [SGX_TRTS_CHECK_FUNCS] on build without Intel SGX])
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_FUNCS] on build without Intel SGX])
 	])
 ]) # SGX_TSTDC_CHECK_FUNCS
 
-AC_DEFUN([_SGX_TSTDC_CHECK_HEADER_SET_FLAGS],[
+AC_DEFUN([_SGX_TSTDC_COMPILER_FLAGS_SET],[
 		old_CFLAGS="$CFLAGS"
 		old_CPPFLAGS="$CPPFLAGS"
 		old_CXXFLAGS="$CXXFLAGS"
@@ -108,13 +156,13 @@ AC_DEFUN([_SGX_TSTDC_CHECK_HEADER_SET_FLAGS],[
 		CXXFLAGS="${ac_cv_sgx_tlib_cxxflags}"
 ])
 
-AC_DEFUN([_SGX_TSTDC_CHECK_HEADER_RESTORE_FLAGS],[
+AC_DEFUN([_SGX_TSTDC_COMPILER_FLAGS_RESTORE],[
 		CFLAGS="${old_CFLAGS}"
 		CPPFLAGS="${old_CPPFLAGS}"
 		CXXFLAGS="${old_CXXFLAGS}"
 ])
 
-AC_DEFUN([_SGX_TSTDC_CHECK_FUNC_SET_FLAGS],[
+AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_SET],[
 		old_CFLAGS="$CFLAGS"
 		old_CPPFLAGS="$CPPFLAGS"
 		old_CXXFLAGS="$CXXFLAGS"
@@ -130,7 +178,7 @@ AC_DEFUN([_SGX_TSTDC_CHECK_FUNC_SET_FLAGS],[
 		LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc"
 ])
 
-AC_DEFUN([_SGX_TSTDC_CHECK_FUNC_RESTORE_FLAGS],[
+AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_RESTORE],[
 		CFLAGS="${old_CFLAGS}"
 		CPPFLAGS="${old_CPPFLAGS}"
 		CXXFLAGS="${old_CXXFLAGS}"
