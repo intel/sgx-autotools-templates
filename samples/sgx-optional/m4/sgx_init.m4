@@ -1,10 +1,10 @@
 # SGX_INIT
-# -----------------------------------
+# --------
 # Initialize automake/autoconf with Intel SGX build options.
 # Calling this macro from configure.ac will enforce SGX support
 # in the build.
-# -----------------------------------
 AC_DEFUN([SGX_INIT],[
+    AS_VAR_IF([ac_cv_sgx_init], [yes], [AC_MSG_ERROR([[already called SGX_INIT or SGX_INIT_OPTIONAL]])])
 	AC_ARG_WITH([enclave-libdir],
 		[AS_HELP_STRING([--with-enclave-libdir=path],
 			[Set the directory where enclave libraries should be installed (default: EPREFIX/libexec)])
