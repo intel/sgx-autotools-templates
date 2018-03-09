@@ -105,6 +105,7 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADERS], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
 		_SGX_TSTDC_COMPILER_FLAGS_SET
 		AC_CHECK_HEADERS([$1],[$2],[$3])
+		as_echo_n="echo -n"
 		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
 	],[
 		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_HEADERS] on build without Intel SGX])
@@ -154,12 +155,15 @@ AC_DEFUN([_SGX_TSTDC_COMPILER_FLAGS_SET],[
 		CFLAGS="${ac_cv_sgx_tlib_cflags}"
 		CPPFLAGS="-nostdinc -nostdinc++ ${ac_cv_sgx_tlib_cppflags}"
 		CXXFLAGS="${ac_cv_sgx_tlib_cxxflags}"
+		old_echo_n="${as_echo_n}"
+		as_echo_n='echo -n Intel SGX: '
 ])
 
 AC_DEFUN([_SGX_TSTDC_COMPILER_FLAGS_RESTORE],[
 		CFLAGS="${old_CFLAGS}"
 		CPPFLAGS="${old_CPPFLAGS}"
 		CXXFLAGS="${old_CXXFLAGS}"
+		as_echo_n="${old_echo_n}"
 ])
 
 AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_SET],[
@@ -174,8 +178,10 @@ AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_SET],[
 		dnl We have to do thiese a litte differently to ensure a clean
 		dnl link. Remember, we are just trying to ensure the symbol
 		dnl is found, not produce a usable object.
-		LDFLAGS="${ac_cv_sgx_enclave_ldflags} -Wl,--defsym,__intel_security_check_cookie=0 -Wl,--defsym,__intel_security_cookie=0 -Wl,--defsym,abort=0 -Wl,--defsym,get_errno_addr=0 -Wl,--no-undefined"
-		LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc"
+		LDFLAGS="${ac_cv_sgx_enclave_ldflags} -Wl,--defsym,__ImageBase=0 -Wl,--defsym,do_ecall=0 -Wl,--defsym,g_ecall_table=0 -Wl,--defsym,g_dyn_entry_table=0"
+		LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc -lsgx_trts -lsgx_tcrypto -Wl,--end-group"
+		old_echo_n="${as_echo_n}"
+		as_echo_n='echo -n Intel SGX: '
 ])
 
 AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_RESTORE],[
@@ -184,4 +190,5 @@ AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_RESTORE],[
 		CXXFLAGS="${old_CXXFLAGS}"
 		LDFLAGS="${old_LDFLAGS}"
 		LIBS="${old_LIBS}"
+		as_echo_n="${old_echo_n}"
 ])
