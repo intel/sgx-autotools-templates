@@ -4922,7 +4922,7 @@ $as_echo "#define HAVE_SGX 1" >>confdefs.h
 
 else
 
-		ac_fn_c_check_header_mongrel "$LINENO" "openssl/sha.h" "ac_cv_header_openssl_sha_h" "$ac_includes_default"
+	ac_fn_c_check_header_mongrel "$LINENO" "openssl/sha.h" "ac_cv_header_openssl_sha_h" "$ac_includes_default"
 if test "x$ac_cv_header_openssl_sha_h" = xyes; then :
 
 else

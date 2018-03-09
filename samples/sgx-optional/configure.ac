@@ -13,7 +13,6 @@ SGX_INIT_OPTIONAL()
 SGX_IF_ENABLED([
 	AC_DEFINE(HAVE_SGX, 1, [Build with SGX support])
 ],[
-	dnl AC_MSG_CHECKING([openssl])
 	AC_CHECK_HEADER([openssl/sha.h], [], [
 		AC_MSG_FAILURE([OpenSSL headers required for non-SGX builds])
 	])
