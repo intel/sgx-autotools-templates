@@ -9,6 +9,7 @@ M4 Macro files:
   m4/sgx_init.m4
   m4/sgx_init_optional.m4
   m4/sgx_tstdc_check.m4
+  m4/sgx_tstdc_check_prefix.m4
 ```
 
 Automake includes:
@@ -29,15 +30,69 @@ is a compile-time option.
 The M4 macro files define the following functions for use in GNU Autoconf
 configure.ac files:
 
-| File        | Macro    |
-| ----------- | -------- |
-| sgx_init.m4 | SGX_INIT |
-| sgx_init_optional.m4 | SGX_INIT_OPTIONAL |
+<table><tbody>
+<tr><th> File                   </th><th> Macro                </th></tr>
+<tr><td rowspan=2> sgx_init.m4  </td><td> SGX_IF_ENABLED       </td></tr>
+<tr>                                 <td> SGX_INIT             </td></tr>
+<tr><td>  sgx_init_optional.m4  </td><td> SGX_INIT_OPTIONAL    </td></tr>
+<tr><td rowspan=9> sgx_tstdc_check.m4 </td><td> SGX_TSTDC_CHECK_DECL </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_DECLS </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_DECLS_ONCE </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_FUNC       </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_FUNCS      </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_HEADER     </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_HEADERS    </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_TYPE       </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_TYPES      </td></tr>
+<tr><td rowspan=9> sgx_tstdc_check.m4 </td><td> SGX_TSTDC_CHECK_DECL_PREFIX </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_DECLS_PREFIX   </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_DECLS_ONCE_PREFIX </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_FUNC_PREFIX    </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_FUNCS_PREFIX   </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_HEADER_PREFIX  </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_HEADERS_PREFIX </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_TYPE_PREFIX    </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_TYPES_PREFIX      </td></tr>
+</tbody>
+</table>
 
 You should invoke either **SGX_INIT** or **SGX_INIT_OPTIONAL**. Do not call 
 both.
 
+### SGX_IF_ENABLED
+
+&mdash;Macro: SGX_IF_ENABLED([ _run-if-enabled_ ], [ _run-if-disabled_ ])
+
+If Intel SGX is enabled in the build, then run the shell code 
+_run-if-enabled_, otherwise run _run-if-disabled_.
+
+Note that "enabled" in this context means: the build _explicitly_ 
+depends on Intel SGX because SGX_INIT was called (see below), or the
+user asked for Intel SGX by supplying `--enable-sgx` as an option
+to configure in builds where Intel SGX is optional (via the 
+SGX_INIT_OPTIONAL macro). 
+
+This is typically used to indication actions that need to be taken
+when software is compiled without Intel SGX support. For example,
+
+```
+  SGX_IF_ENABLED([
+  	AC_DEFINE(HAVE_SGX, 1, [Build with Intel SGX support])
+  ],[
+	dnl libcrypto is required if we aren't compiling with Intel SGX support
+	AC_CHECK_HEADERS([openssl/sha.h], ,
+		[AC_MSG_FAILURE([OpenSSL headers required])])
+	AC_CHECK_LIBS([SHA256], [crypto], ,
+		[AC_MSG_FAILURE([libcrypto required])])
+  ])
+```
+
+ensures that the non-Intel SGX build has the necessary libraries, and
+defines the symbol `HAVE_SGX` in `config.h`.
+
 ### SGX_INIT
+
+&mdash;Macro: SGX_INIT
 
 Set up definitions for a software build that requires the use of Intel SGX.
 The project will require that Intel SGX SDK be installed, and configure will 
@@ -95,7 +150,11 @@ procedure:
 
 * Sets Makefile substitution variables.
 
+* Sets cache variables
+
 ### SGX_INIT_OPTIONAL
+
+&mdash;Macro: SGX_INIT_OPTIONAL
 
 This macro adds a configuration option to enable SGX support in projects
 at build time. It is intended for packages where Intel SGX is not required,
@@ -110,19 +169,75 @@ It takes the following actions:
       --enable-sgx        Build with/without Intel SGX support (default: disabled)
 ```
 
-
-* Defines the following cache variable, which is set to either "yes" or
-  "no". This variable can be tested in configure.ac in order to modify 
-  the final build configuration.
-
-```
-       $ac_cv_enable_sgx 
-```
-
-
 * Invokes the **SGX_INIT** macro.
 
----
+### SGX_TSTDC_CHECK_\*
+
+These macros are equivalent to the AC_CHECK_\* macros of the same
+name, only they perform their tests on the trusted C library distributed
+with the Intel SGX SDK instead of the standard C library.
+
+They are intended to facilite porting static libraries to Intel SGX
+trusted libraries: an Intel SGX build should call these functions 
+instead of the standard ones to ensure it properly detects which
+headers and functions are present.
+
+For example, a library intended to offer both a standard and Intel SGX
+trusted build might do the following:
+
+```
+  SGX_IF_ENABLED([
+    SGX_TSTDC_CHECK_HEADERS([fcntl.h float.h locale.h time.h unistd.h wchar.h])
+	SGX_TSTDC_CHECK_FUNCS([getpagesize sigaction snprintf sprintf_s vsnprintf sscanf])
+  ],[
+    AC_CHECK_HEADERS([fcntl.h float.h locale.h time.h unistd.h wchar.h])
+	AC_CHECK_FUNCS([getpagesize sigaction snprintf sprintf_s vsnprintf sscanf])
+  ])
+```
+
+**Warning:** Since these macros call the equivalent AC_CHECK_\* macro,
+they will by default define the symbol HAVE_\* for each function found.
+When building just a trusted library or enclave this is fine, but if a
+common autoconf configuration is used for both _untrusted_ applications
+and libaries _and_ trusted ones (enclaves and trusted libraries), then
+the untrusted code will have incorrect definitions. These macros also
+collide with AC_CHECK_\* since they share the same cache variables.
+Use the SGX_TSTDC_CHECK_\*_PREFIX macros if your autoconfig file is
+used to create both trusted and untrusted code.
+
+### SGX_TSTDC_CHECK_\*_PREFIX
+
+These macros work like SGX_TSTDC_CHECK_\*, only they assign a prefix of
+"tstdc_" to cache variables, and "TSTD_C" to precoressor symbols. They
+allow you to search for the same symbol name in both trusted and untrusted
+libraries. For example,
+
+```
+	AC_CHECK_FUNCS([printf snprintf sscanf])
+	SGX_TSTDC_CHECK_FUNCS_PREFIX([printf snprintf sscanf])
+```
+
+will result in the following output:
+
+```
+	checking for printf... yes
+	checking for snprintf... yes
+	checking for sscanf... yes
+	Intel SGX: checking for printf... no
+	Intel SGX: checking for snprintf... yes
+	Intel SGX: checking for sscanf... no
+```
+
+and the following symbol definitions:
+
+```
+	#define HAVE_PRINTF 1
+	#define HAVE_SNPRINTF 1
+	#define HAVE_SSCANF 1
+	#define HAVE_TSTDC_PRINTF 0
+	#define HAVE_TSTDC_SNPRINTF 1
+	#define HAVE_TSTDC_SSCANF 0
+```
 
 ## Makefile substitution variables
 
