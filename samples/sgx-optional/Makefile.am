@@ -26,10 +26,11 @@ include $(top_srcdir)/build-aux/sgx_app.am
 ##   SGX_UAE_SERVICE_LIB
 ##   SGX_EDGER8R
 
+DIST_SUBDIRS = EnclaveHash
 if SGX_ENABLED
 SUBDIRS = EnclaveHash
-else
-DIST_SUBDIRS = EnclaveHash
+else !SGX_ENABLED
+SUBDIRS =
 endif
 
 

@@ -10,7 +10,7 @@ AM_PROG_CC_C_O
 
 SGX_INIT_OPTIONAL()
 
-AS_IF([test "x$ac_cv_enable_sgx" = "xyes"], [
+SGX_IF_ENABLED([
 	AC_DEFINE(HAVE_SGX, 1, [Build with SGX support])
 ],[
 	dnl AC_MSG_CHECKING([openssl])

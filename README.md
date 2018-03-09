@@ -6,15 +6,16 @@ the GNU build system. It includes the following.
 
 M4 Macro files:
 ```
-  sgx_init.m4
-  sgx_init_optional.m4
+  m4/sgx_init.m4
+  m4/sgx_init_optional.m4
+  m4/sgx_tstdc_check.m4
 ```
 
 Automake includes:
 ```
-  sgx_app.am
-  sgx_enclave.am
-  sgx_tlib.am
+  build-aux/sgx_app.am
+  build-aux/sgx_enclave.am
+  build-aux/sgx_tlib.am
 ```
 
 In addition to these template files, two sample projects has been provided
