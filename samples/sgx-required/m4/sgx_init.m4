@@ -75,7 +75,7 @@ AC_DEFUN([SGX_INIT],[
 	AC_SUBST(SGX_DEBUG_FLAGS, [$_sgxdebug])
 	AS_IF([test "x$SGX_SDK" = "x"], [SGXSDK=detect], [SGXSDK=env])
 
-	AS_IF([test "x$SGXSDK" = "xenv"], [],
+	AS_IF([test "x$SGXSDK" = "xenv"], [SGXSDK=$SGX_SDK],
 		[test "x$SGXSDK" != "xdetect"], [],
 		[test -d /opt/intel/sgxsdk], [SGXSDK=/opt/intel/sgxsdk],
 		[test -d ~/sgxsdk], [SGXSDK=~/sgxsdk],
