@@ -243,56 +243,56 @@ and the following symbol definitions:
 
 **Intel SGX SDK paths**
 ```
-        SGXSDK
-        SGXSDK_BINDIR
-        SGXSDK_INCDIR
-        SGXSDK_LIBDIR
+	SGXSDK
+	SGXSDK_BINDIR
+	SGXSDK_INCDIR
+	SGXSDK_LIBDIR
 ```
 
 **Intel SGX SSL paths**
 ```
-	    SGXSSL
-	    SGXSSL_BINDIR
-	    SGXSSL_INCDIR
-	    SGXSSL_LIBDIR
+	SGXSSL
+	SGXSSL_BINDIR
+	SGXSSL_INCDIR
+	SGXSSL_LIBDIR
 ```
 
 **Enclave library installation path**
 ```
-        enclave_libdir
+	enclave_libdir
 ```
 
 **Flags for compiling and linking an Intel SGX enclave**
 ```
-		SGX_ENCLAVE_CFLAGS
-		SGX_ENCLAVE_CPPFLAGS
-		SGX_ENCLAVE_CXXFLAGS
-		SGX_ENCLAVE_LDFLAGS
-		SGX_ENCLAVE_LDADD
+	SGX_ENCLAVE_CFLAGS
+	SGX_ENCLAVE_CPPFLAGS
+	SGX_ENCLAVE_CXXFLAGS
+	SGX_ENCLAVE_LDFLAGS
+	SGX_ENCLAVE_LDADD
 ```
 
 **Flags for compiling an Intel SGX trusted library**
 ```
-		SGX_TLIB_CFLAGS
-		SGX_TLIB_CPPFLAGS
-		SGX_TLIB_CXXFLAGS
+	SGX_TLIB_CFLAGS
+	SGX_TLIB_CPPFLAGS
+	SGX_TLIB_CXXFLAGS
 ```
 
 **Trusted runtime library names (to support h/w and simulation modes)**
 ```
-		SGX_TRTS_LIB
-		SGX_TSERVICE_LIB
+	SGX_TRTS_LIB
+	SGX_TSERVICE_LIB
 ```
 
 **Untrusted runtime library names (to support h/w and simulation modes)**
 ```
-		SGX_UAE_SERVICE_LIB
-		SGX_URTS_LIB
+	SGX_UAE_SERVICE_LIB
+	SGX_URTS_LIB
 ```
 
 **Indicating use of Intel SGX simulation mode**
 ```
-		SGX_HW_SIM
+	SGX_HW_SIM
 ```
 
 ---
@@ -492,7 +492,7 @@ variable if you opt for this approach):
 
 ```
 MyEnclave.edl: MyEnclave/MyEnclave.edl
-        ln -s $?
+	ln -s $?
 
 CLEANFILES = MyEnclave_u.c MyEnclave_u.h MyEnclave.edl
 ```
