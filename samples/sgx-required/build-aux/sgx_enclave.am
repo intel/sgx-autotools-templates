@@ -69,8 +69,8 @@ endif
 
 signed_enclave_debug$(EXEEXT): $(ENCLAVE).signed$(EXEEXT) 
 
-$(ENCLAVE).signed$(EXEEXT): $(ENCLAVE)$(EXEEXT)
-	$(SGX_SIGN) sign -key $(ENCLAVE_KEY) -enclave $(ENCLAVE).so -out $(ENCLAVE).signed.so -config $(ENCLAVE_CONFIG)
+$(ENCLAVE).signed$(EXEEXT): $(ENCLAVE)$(EXEEXT) $(ENCLAVE_CONFIG)
+	$(SGX_SIGN) sign $(SGX_SIGN_FLAGS) -key $(ENCLAVE_KEY) -enclave $(ENCLAVE).so -out $(ENCLAVE).signed.so -config $(ENCLAVE_CONFIG)
 
 signed_enclave_rel$(EXEEXT):
 	@echo "--------------------------------------------------------------"
@@ -80,7 +80,7 @@ signed_enclave_rel$(EXEEXT):
 	@echo "the enclave."
 	@echo
 	@echo "To sign the enclave use the command:"
-	@echo "   $(SGX_SIGN) sign -key <your_key> -enclave $(ENCLAVE).so -out $(ENCLAVE).signed.so -config $(ENCLAVE_CONFIG)"
+	@echo "   $(SGX_SIGN) sign $(SGX_SIGN_FLAGS) -key <your_key> -enclave $(ENCLAVE).so -out $(ENCLAVE).signed.so -config $(ENCLAVE_CONFIG)"
 	@echo "You can also sign the enclave using an external signing tool."
 	@echo "--------------------------------------------------------------"
 

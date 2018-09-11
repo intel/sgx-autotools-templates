@@ -53,6 +53,12 @@ ENCLAVE_CONFIG=$(ENCLAVE).config.xml
 ENCLAVE_KEY=$(ENCLAVE)_private.pem
 
 
+## Provide additional flags to sgx_sign when signing the enclave.
+## This is not typically necessary.
+##
+## SGX_SIGN_FLAGS=
+
+
 ## Additional Automake flags needed to build the enclave.
 ##
 ## AM_CPPFLAGS += 
