@@ -44,7 +44,7 @@ configure.ac files:
 <tr>                                 <td> SGX_TSTDC_CHECK_HEADERS    </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_TYPE       </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_TYPES      </td></tr>
-<tr><td rowspan=9> sgx_tstdc_check.m4 </td><td> SGX_TSTDC_CHECK_DECL_PREFIX </td></tr>
+<tr><td rowspan=9> sgx_tstdc_check_prefix.m4 </td><td> SGX_TSTDC_CHECK_DECL_PREFIX </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS_PREFIX   </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS_ONCE_PREFIX </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_FUNC_PREFIX    </td></tr>
