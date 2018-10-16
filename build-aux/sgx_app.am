@@ -1,10 +1,25 @@
+## -------------------------------- Variables set via configure
+## These have to be outside of a conditional or automake will kick and scream.
+##
 ## Intel SGX SDK
 
 SGXSDK=@SGXSDK@
 SGXSDK_BINDIR=@SGXSDK_BINDIR@
 SGXSDK_INCDIR=@SGXSDK_INCDIR@
 SGXSDK_LIBDIR=@SGXSDK_LIBDIR@
-SGX_EDGER8R=$(SGXSDK_BINDIR)/sgx_edger8r
+
+## These libraries exist in both hardware and simulation (_sim) form,
+## so they need to be listed as Makefile variables.
+
+SGX_URTS_LIB=@SGX_URTS_LIB@
+SGX_UAE_SERVICE_LIB=@SGX_UAE_SERVICE_LIB@
+
+## OpenEnclave
+
+OE=@OE@
+OE_BINDIR=@OE_BINDIR@
+OE_INCDIR=@OE_INCDIR@
+OE_LIBDIR=@OE_LIBDIR@
 
 ## Intel SGX SSL
 
@@ -13,25 +28,42 @@ SGXSSL_BINDIR=@SGXSSL_BINDIR@
 SGXSSL_INCDIR=@SGXSSL_INCDIR@
 SGXSSL_LIBDIR=@SGXSSL_LIBDIR@
 
-if SGX_ENABLED
-## All Intel SGX applications need at least these flags
+##                               -------- Intel SGXSDK
+if SGX_WITH_SGXSDK
+
+SGX_EDGER8R=$(SGXSDK_BINDIR)/sgx_edger8r
 
 AM_CPPFLAGS = -I$(SGXSDK_INCDIR)
 AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
-else
-AM_CPPFLAGS = 
-AM_LDFLAGS = 
-endif
-
-## These libraries exist in both hardware and simulation (_sim) form,
-## so they need to be listed as Makefile variables.
-
-SGX_URTS_LIB=@SGX_URTS_LIB@
-SGX_UAE_SERVICE_LIB=@SGX_UAE_SERVICE_LIB@
 
 ## Rule to generate untrusted proxy functions from an EDL file.
 
-if SGX_ENABLED
 %_u.h %_u.c: %.edl
 	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --untrusted $<
+
+##                                -------- !Intel SGXSDK
+else
+##                                   -------- OpenEnclave
+if SGX_WITH_OPENENCLAVE
+
+OE_EDGER8R=$(OE_BINDIR)/oeedger8r
+
+AM_CPPFLAGS = @OE_APP_CPPFLAGS@
+AM_LDFLAGS = @OE_APP_LDFLAGS@
+
+## Rule to generate untrusted proxy functions from an EDL file.
+%_u.h %_u.c: %.edl
+	$(OE_EDGER8R) --search-path $(OE_INCDIR) $(OE_EDGER8R_FLAGS) --untrusted $<
+
+##                                   -------- !OpenEnclave
+else
+## Necessary to allow the app's Makefile to always use += for these 
+## variables, and not have to wrap with "if SGX_ENABLED" (which wouldn't
+## make sense for apps where SGX is mandatory).
+AM_CPPFLAGS = 
+AM_LDFLAGS = 
+##                                   -------- end OpenEnclave
 endif
+##                                -------- end Intel SGXSDK
+endif
+
