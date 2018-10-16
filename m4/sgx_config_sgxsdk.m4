@@ -77,34 +77,49 @@ AC_DEFUN([SGX_CONFIG_SGXSDK],[
 
 	AC_MSG_NOTICE([found Intel SGX SDK in $SGXSDK])
 
-	dnl These are not quite the same as the Makefile substitution variables.
-	dnl They are set in a manner to allow autoconf to use them when running
-	dnl a compiler or linker for things like header and function checks.
+	dnl ----------------------------------------------------------
+	dnl Some of these are not defined the same as the Makefile 
+	dnl substitution variables since they have to be set in a manner
+	dnl that allows autoconf to use them when running the compiler
+	dnl and linker for things like header and function checks (see
+	dnl SGX_TSTDC_CHECK_*). 
+
+	dnl Trusted Libraries
+
+	ac_cv_sgx_tlib_cppflags="-I${ac_cv_sgx_sdk_incdir} -I${ac_cv_sgx_sdk_incdir}/tlibc"
 
 	ac_cv_sgx_tlib_cflags="-nostdinc -fvisibility=hidden -fpie -fstack-protector"
-	ac_cv_sgx_tlib_cppflags="-I${ac_cv_sgx_sdk_incdir} -I${ac_cv_sgx_sdk_incdir}/tlibc"
-	ac_cv_sgx_tlib_cxxflags="-nostdinc++ -fvisibility=hidden -fpie -fstack-protector"
+	ac_cv_sgx_tlib_cxxflags="-nostdinc++ ${ac_cv_sgx_tlib_cflags}"
+
+	dnl (no ldadd or ldflags since building a library does not invoke 
+	dnl the linker)
+
+
+	dnl Enclaves
+
+	ac_cv_sgx_enclave_cppflags="${ac_cv_sgx_tlib_cppflags}"
+
+	ac_cv_sgx_enclave_cflags="${ac_cv_sgx_tlib_cflags} -ffunction-sections -fdata-sections"
+	ac_cv_sgx_enclave_cxxflags="-nostdinc++ ${ac_cv_sgx_enclave_cflags}"
 
 	ac_cv_sgx_enclave_ldflags="-nostdlib -nodefaultlibs -nostartfiles -L${ac_cv_sgx_sdk_libdir}"
 	ac_cv_sgx_enclave_ldadd="-Wl,--no-undefined -Wl,--whole-archive -lsgx_trts -Wl,--no-whole-archive -Wl,--start-group -lsgx_tstdc -lsgx_tcrypto -lsgx_tservice_lib -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"
 
 
-	dnl Substitutions for building a trusted library
+	dnl Substitutions for building a trusted library (generally identical
+	dnl to building an enclave, only without LDADD).
 
-	AC_SUBST(SGX_TLIB_CFLAGS,
-		["-nostdinc -fvisibility=hidden -fpie -fstack-protector"])
+	AC_SUBST(SGX_TLIB_CFLAGS, [$ac_cv_sgx_tlib_cflags])
 	AC_SUBST(SGX_TLIB_CPPFLAGS,
 		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
-	AC_SUBST(SGX_TLIB_CXXFLAGS,
-		["-nostdinc++ -fvisibility=hidden -fpie -fstack-protector"])
+	AC_SUBST(SGX_TLIB_CXXFLAGS, [$ac_cv_sgx_tlib_cxxflags])
 
 	dnl Substitutions for building an enclave
 
-	AC_SUBST(SGX_ENCLAVE_CFLAGS,
-	 	["-nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector"])
+	AC_SUBST(SGX_ENCLAVE_CFLAGS, [$ac_cv_sgx_enclave_cflags])
 	AC_SUBST(SGX_ENCLAVE_CPPFLAGS, 
 		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
-	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, ["-nostdinc++ -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector"])
+	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, [$ac_cv_sgx_enclave_cxxflags])
 	AC_SUBST(SGX_ENCLAVE_LDFLAGS,
 		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"])
 	AC_SUBST(SGX_ENCLAVE_LDADD,

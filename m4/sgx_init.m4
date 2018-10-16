@@ -35,7 +35,7 @@ AC_DEFUN([SGX_INIT],[
 				[AC_MSG_ERROR([SGX toolkit must be one of "intel-sgxsdk", "ms-open-enclave"])],
 				[ac_cv_sgx_toolkit=$withval]
 			)
-		],[ac_cv_sgx_toolkit=inte-sgxsdk])
+		],[ac_cv_sgx_toolkit=intel-sgxsdk])
 
 	AC_ARG_WITH([sgxsdk],
 		[AS_HELP_STRING([--with-sgxsdk=DIR],

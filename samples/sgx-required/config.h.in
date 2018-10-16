@@ -6,11 +6,11 @@
 /* Flag set for prerelease builds */
 #undef EDEBUG
 
+/* Define if you have fprintf */
+#undef HAVE_FPRINTF
+
 /* Flag set for prerelease and release builds */
 #undef NDEBUG
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
 
 /* Name of package */
 #undef PACKAGE
@@ -32,6 +32,12 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Define if building for SGX with OpenEnclave */
+#undef SGX_HAVE_OPENENCLAVE
+
+/* Define if building for SGX with the Intel SGX SDK */
+#undef SGX_HAVE_SGXSDK
 
 /* Enable hardware simulation mode */
 #undef SGX_HW_SIM

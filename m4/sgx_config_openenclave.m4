@@ -7,17 +7,7 @@ AC_DEFUN([SGX_CONFIG_OPENENCLAVE],[
 		[Define if building for SGX with OpenEnclave])
 
 	AS_IF([test "x$sgxsim" = "xyes"], [
-			AC_SUBST(SGX_TRTS_LIB, [sgx_trts_sim])
-			AC_SUBST(SGX_TSERVICE_LIB, [sgx_tservice_sim])
-			AC_SUBST(SGX_UAE_SERVICE_LIB, [sgx_uae_service_sim])
-			AC_SUBST(SGX_URTS_LIB, [sgx_urts_sim])
-			AC_SUBST(LIBS_HW_SIMU, ["-lsgx_urts_sim -lsgx_uae_service_sim"])
 			AC_DEFINE(SGX_HW_SIM, 1, [Enable hardware simulation mode])
-		], [
-			AC_SUBST(SGX_TRTS_LIB, [sgx_trts])
-			AC_SUBST(SGX_TSERVICE_LIB, [sgx_tservice])
-			AC_SUBST(SGX_UAE_SERVICE_LIB, [sgx_uae_service])
-			AC_SUBST(SGX_URTS_LIB, [sgx_urts])
 		]
 	)
 	AS_IF([test "x$_sgxbuild" = "xdebug"], [
@@ -52,17 +42,17 @@ AC_DEFUN([SGX_CONFIG_OPENENCLAVE],[
 		ac_cv_openenclave_bindir=$OE/bin
 		AC_SUBST(OE_BINDIR, [$OE/bin])
 	], [
-		AC_MSG_ERROR(Can't find Intel SGX SDK bin directory)
+		AC_MSG_ERROR(Can't find Open Enclave bin directory)
 	])
 
 	AS_IF([test -d $OE/lib], [
 		ac_cv_openenclave_libdir=$OE/lib
 		AC_SUBST(OE_LIBDIR, [$OE/lib])
 	], [
-		AC_MSG_ERROR(Can't find Intel SGX SDK bin directory)
+		AC_MSG_ERROR(Can't find the Open Enclave bin directory)
 	])
 
-	AC_MSG_NOTICE([found OpenEnclave in $OE])
+	AC_MSG_NOTICE([found Open Enclave in $OE])
 
 	export PKG_CONFIG_PATH=$OE/share/pkgconfig
 

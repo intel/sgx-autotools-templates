@@ -51,7 +51,8 @@ AM_CPPFLAGS += -fno-builtin-memset
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
 
-CLEANFILES = EnclaveHash_u.c EnclaveHash_u.h EnclaveHash.edl
+CLEANFILES = EnclaveHash_u.c EnclaveHash_u.h EnclaveHash.edl \
+	EnclaveHash_args.h EnclaveHash.signed.so
 
 
 ## The build target
@@ -59,11 +60,18 @@ CLEANFILES = EnclaveHash_u.c EnclaveHash_u.h EnclaveHash.edl
 bin_PROGRAMS = storesecret
 
 
+## Copy the signed enclave to the current directory
+
+EnclaveHash.signed.so: EnclaveHash/EnclaveHash.signed.so
+	ln -s $?
+
+
 ## You can't use $(wildcard ...) with automake so all source files 
 ## have to be explicitly listed.
 
 storesecret_SOURCES = main.c sgx_detect_linux.c sgx_stub.c 
 nodist_storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
+EXTRA_storesecret_DEPENDENCIES = EnclaveHash.signed.so
 BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 
 ## Library flags. At minimum, an Intel SGX application will need:

@@ -10,6 +10,10 @@ AM_PROG_CC_C_O
 
 SGX_INIT()
 
+SGX_TSTDC_CHECK_FUNC([fprintf], [
+	AC_DEFINE(HAVE_FPRINTF, 1, [Define if you have fprintf])
+])
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile EnclaveHash/Makefile])
 
