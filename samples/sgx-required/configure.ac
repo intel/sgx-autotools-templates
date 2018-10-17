@@ -10,8 +10,8 @@ AM_PROG_CC_C_O
 
 SGX_INIT()
 
-SGX_TSTDC_CHECK_HEADERS([stdio.h])
-SGX_TSTDC_CHECK_FUNCS([fprintf])
+SGX_TSTDC_CHECK_HEADERS_PREFIX([stdio.h])
+SGX_TSTDC_CHECK_FUNCS_PREFIX([fprintf])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile EnclaveHash/Makefile])

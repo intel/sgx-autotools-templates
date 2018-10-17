@@ -28,11 +28,11 @@ AC_DEFUN([SGX_INIT],[
 
 	AC_ARG_WITH([sgx-toolkit],
 		[AS_HELP_STRING([--with-sgx-toolkit=NAME],
-			[Specify toolkit to use for the Intel SGX build. Can be one of: intel-sgxsdk, ms-open-enclave (default: intel)])
+			[Specify toolkit to use for the Intel SGX build. Can be one of: intel-sgxsdk, ms-openenclave (default: intel)])
 		], [
 			AS_IF(
-				[test "$withval" != "ms-open-enclave" -a "$withval" != "intel-sgxsdk" ],
-				[AC_MSG_ERROR([SGX toolkit must be one of "intel-sgxsdk", "ms-open-enclave"])],
+				[test "$withval" != "ms-openenclave" -a "$withval" != "intel-sgxsdk" ],
+				[AC_MSG_ERROR([SGX toolkit must be one of "intel-sgxsdk", "ms-openenclave"])],
 				[ac_cv_sgx_toolkit=$withval]
 			)
 		],[ac_cv_sgx_toolkit=intel-sgxsdk])
@@ -47,8 +47,8 @@ AC_DEFUN([SGX_INIT],[
 		],[SGXSDK="detect"]
 	)
 
-	AC_ARG_WITH([open-enclave],
-		[AS_HELP_STRING([--with-open-enclave=DIR],
+	AC_ARG_WITH([openenclave],
+		[AS_HELP_STRING([--with-openenclave=DIR],
 			[Specify the Open Enclave directory (defaults to /opt/openenclave)])
 		],[
 			AS_IF(
@@ -67,7 +67,7 @@ AC_DEFUN([SGX_INIT],[
 	AM_CONDITIONAL([SGX_WITH_SGXSDK],
 		[test "$ac_cv_enable_sgx" = "yes" -a "$ac_cv_sgx_toolkit" = "intel-sgxsdk"])
 	AM_CONDITIONAL([SGX_WITH_OPENENCLAVE],
-		[test "$ac_cv_enable_sgx" = "yes" -a "$ac_cv_sgx_toolkit" = "ms-open-enclave"])
+		[test "$ac_cv_enable_sgx" = "yes" -a "$ac_cv_sgx_toolkit" = "ms-openenclave"])
 	AM_COND_IF([SGX_ENABLED], [
 
     	AC_SUBST(enclave_libdir)

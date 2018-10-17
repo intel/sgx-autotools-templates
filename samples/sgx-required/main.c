@@ -69,7 +69,7 @@ typedef struct _enclave_meta_struct {
 #ifdef SGX_HAVE_SGXSDK
 	sgx_launch_token_t *token;
 	int updated;
-	sgx_enclave_id_t enclavereg;
+	sgx_enclave_id_t enclave;
 	sgx_misc_attribute_t attr;
 #else
 	oe_enclave_type_t type;

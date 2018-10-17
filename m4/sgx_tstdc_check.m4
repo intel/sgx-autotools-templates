@@ -79,7 +79,7 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECLS_ONCE], [
 	])
 ]) # SGX_TSTDC_CHECK_DECLS
 
-# SGX_TSTDC_CHECK_HEADER(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+# SGX_TSTDC_CHECK_HEADER(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
 # ------------------------------------------------------------------------
 # Works like AC_CHECK_HEADER only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
@@ -89,14 +89,17 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECLS_ONCE], [
 AC_DEFUN([SGX_TSTDC_CHECK_HEADER], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
 		_SGX_TSTDC_COMPILER_FLAGS_SET
-		AC_CHECK_HEADER([$1],[$2],[$3])
+		m4_if(m4_min(4,m4_count($*)),4,
+			[AC_CHECK_HEADER([$1],[$2],[$3],[$4])],
+			[AC_CHECK_HEADER([$1],[$2],[$3],[ ])]
+		)
 		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
 	],[
 		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_HEADER] on build without Intel SGX])
 	])
 ]) # SGX_TSTDC_CHECK_HEADER
 
-# SGX_TSTDC_CHECK_HEADERS(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+# SGX_TSTDC_CHECK_HEADERS(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
 # ------------------------------------------------------------------------
 # Works like AC_CHECK_HEADERS only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
@@ -104,7 +107,10 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADER], [
 AC_DEFUN([SGX_TSTDC_CHECK_HEADERS], [
 	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
 		_SGX_TSTDC_COMPILER_FLAGS_SET
-		AC_CHECK_HEADERS([$1],[$2],[$3])
+		m4_if(m4_min(4,m4_count($*)),4,
+			[AC_CHECK_HEADERS([$1],[$2],[$3],[$4])],
+			[AC_CHECK_HEADERS([$1],[$2],[$3],[ ])]
+		)
 		as_echo_n="echo -n"
 		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
 	],[
@@ -182,6 +188,7 @@ AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_SET],[
 			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,__ImageBase=0 -Wl,--defsym,_start=0 -Wl,--defsym,g_ecall_table=0 -Wl,--defsym,g_dyn_entry_table=0"
 			LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc -lsgx_trts -lsgx_tcrypto -Wl,--end-group"
 		],[
+			dnl LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,_oe_ecalls_table=0 -Wl,--defsym,_oe_ecalls_table_size=0 -Wl,--defsym,_handle_call_enclave_function=0"
 			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin"
 			LIBS="${ac_cv_sgx_enclave_ldadd}"
 		])
@@ -197,3 +204,4 @@ AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_RESTORE],[
 		LIBS="${old_LIBS}"
 		as_echo_n="${old_echo_n}"
 ])
+

@@ -4,6 +4,8 @@
 # the cache variable and "TSTDC_" to the CPP define (HAVE_TSTDC_x).
 AC_DEFUN([SGX_TSTDC_CHECK_TYPE_PREFIX], [
 	type=AS_TR_SH([$1])
+	AH_TEMPLATE(AS_TR_CPP([HAVE_TSTDC_$1]),
+		[The trusted library has the $1 type])
 	AS_VAR_SET_IF([ac_cv_type_$type], [
 		AS_VAR_COPY([o_ac_cv_type_$type],[ac_cv_type_$type])
 		AS_UNSET([ac_cv_type_$type])
@@ -16,7 +18,9 @@ AC_DEFUN([SGX_TSTDC_CHECK_TYPE_PREFIX], [
 	],[
 		AS_UNSET([ac_cv_type_$type])
 	])
-	AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]), 1)
+	AS_VAR_IF([ac_cv_tstdc_type_$type],[yes],
+		AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]))
+	)
 ]) # SGX_TSTDC_CHECK_TYPE_PREFIX
 
 
@@ -38,6 +42,8 @@ AC_DEFUN([SGX_TSTDC_CHECK_TYPES_PREFIX], [
 # the cache variable and "TSTDC_" to the CPP define (HAVE_TSTDC_x).
 AC_DEFUN([SGX_TSTDC_CHECK_DECL_PREFIX], [
 	decl=AS_TR_SH([$1])
+	AH_TEMPLATE(AS_TR_CPP([HAVE_TSTDC_$1]),
+		[The trusted library has the $1 type])
 	AS_VAR_SET_IF([ac_cv_decl_$decl], [
 		AS_VAR_COPY([o_ac_cv_decl_$decl],[ac_cv_decl_$decl])
 		AS_UNSET([ac_cv_decl_$decl])
@@ -50,7 +56,9 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECL_PREFIX], [
 	],[
 		AS_UNSET([ac_cv_decl_$decl])
 	])
-	AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]), 1)
+	AS_VAR_IF([ac_cv_tstdc_decl_$decl],[yes],
+		AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]))
+	)
 ]) # SGX_TSTDC_CHECK_DECL_PREFIX
 
 
@@ -74,17 +82,19 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECLS_ONCE_PREFIX], [
 ]) # SGX_TSTDC_CHECK_DECLS_PREFIX
 
 
-# SGX_TSTDC_CHECK_HEADER_PREFIX(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+# SGX_TSTDC_CHECK_HEADER_PREFIX(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
 # ------------------------------------------------------------------------
 # Works like SGX_TSTDC_CHECK_HEADER, only assigns a prefix of "tstdc_" to
 # the cache variable and "TSTDC_" to the CPP define (HAVE_TSTDC_x).
 AC_DEFUN([SGX_TSTDC_CHECK_HEADER_PREFIX], [
 	header=AS_TR_SH([$1])
+	AH_TEMPLATE(AS_TR_CPP([HAVE_TSTDC_$1]),
+		[The trusted library has the <$1> header file.])
 	AS_VAR_SET_IF([ac_cv_header_$header], [
 		AS_VAR_COPY([o_ac_cv_header_$header],[ac_cv_header_$header])
 		AS_UNSET([ac_cv_header_$header])
 	])
-	SGX_TSTDC_CHECK_HEADER([$1], [$2], [$3])
+	SGX_TSTDC_CHECK_HEADER([$1], [$2], [$3], [$4])
 	AS_VAR_COPY([ac_cv_tstdc_header_$header],[ac_cv_header_$header])
 	AS_VAR_SET_IF([o_ac_cv_header_$header], [
 		AS_VAR_COPY([ac_cv_header_$header],[o_ac_cv_header_$header])
@@ -92,19 +102,24 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADER_PREFIX], [
 	],[
 		AS_UNSET([ac_cv_header_$header])
 	])
-	AH_TEMPLATE(AS_TR_CPP([HAVE_TSTDC_$1]),
-		[Define to 1 if Intel SGX has the <$1> header file.])
-	AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]), 1)
+	AS_VAR_IF([ac_cv_tstdc_header_$header],[yes],
+		AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]))
+	)
 ]) # SGX_TSTDC_CHECK_HEADER_PREFIX
 
 
-# SGX_TSTDC_CHECK_HEADERS_PREFIX(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+# SGX_TSTDC_CHECK_HEADERS_PREFIX(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
 # ------------------------------------------------------------------------
 # Works like SGX_TSTDC_CHECK_HEADERS, only assigns a prefix of "tstdc_" to
 # the cache variable and "TSTDC_" to the CPP define (HAVE_TSTDC_x).
 AC_DEFUN([SGX_TSTDC_CHECK_HEADERS_PREFIX], [
 	m4_foreach_w([SGX_Header], [$1], [
-		SGX_TSTDC_CHECK_HEADER_PREFIX(m4_defn([SGX_Header]), [$2], [$3])
+		m4_if(m4_min(4,m4_count($*)),4,
+			[SGX_TSTDC_CHECK_HEADER_PREFIX(m4_defn([SGX_Header]),
+				[$2], [$3], [$4])],
+			[SGX_TSTDC_CHECK_HEADER_PREFIX(m4_defn([SGX_Header]),
+				[$2], [$3], [  ])]
+		)
 	])
 ]) # SGX_TSTDC_CHECK_HEADERS_PREFIX
 
@@ -115,6 +130,8 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADERS_PREFIX], [
 # the cache variable and "TSTDC_" to the CPP define (HAVE_TSTDC_x).
 AC_DEFUN([SGX_TSTDC_CHECK_FUNC_PREFIX], [
 	func=AS_TR_SH([$1])
+	AH_TEMPLATE(AS_TR_CPP([HAVE_TSTDC_$1]),
+			[Set to 1 if the trusted library has the $1 function])
 	AS_VAR_SET_IF([ac_cv_func_$func], [
 		AS_VAR_COPY([o_ac_cv_func_$func],[ac_cv_func_$func])
 		AS_UNSET([ac_cv_func_$func])
@@ -127,7 +144,9 @@ AC_DEFUN([SGX_TSTDC_CHECK_FUNC_PREFIX], [
 	],[
 		AS_UNSET([ac_cv_func_$func])
 	])
-	AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]), 1)
+	AS_VAR_IF([ac_cv_tstdc_func_$func],[yes],
+		AC_DEFINE(AS_TR_CPP([HAVE_TSTDC_$1]))
+	)
 ]) # SGX_TSTDC_CHECK_FUNC_PREFIX
 
 
