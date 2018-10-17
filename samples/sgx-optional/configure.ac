@@ -1,4 +1,4 @@
-AC_INIT(sgx-autotools, 1.0, john.p.mechalas@intel.com)
+AC_INIT(storesecret, 1.1, john.p.mechalas@intel.com)
 
 AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([foreign])
@@ -12,6 +12,8 @@ SGX_INIT_OPTIONAL()
 
 SGX_IF_ENABLED([
 	AC_DEFINE(HAVE_SGX, 1, [Build with SGX support])
+	SGX_TSTDC_CHECK_HEADER_PREFIX([stdio.h])
+	SGX_TSTDC_CHECK_FUNC_PREFIX([fprintf])
 ],[
 	AC_CHECK_HEADER([openssl/sha.h], [], [
 		AC_MSG_FAILURE([OpenSSL headers required for non-SGX builds])

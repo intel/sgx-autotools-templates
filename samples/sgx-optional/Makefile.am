@@ -59,7 +59,14 @@ AM_CPPFLAGS += -fno-builtin-memset
 ## any edger8r generated files here.
 
 if SGX_ENABLED
-CLEANFILES = EnclaveHash_u.c EnclaveHash_u.h EnclaveHash.edl
+CLEANFILES = EnclaveHash_u.c EnclaveHash_u.h EnclaveHash.edl \
+	EnclaveHash.signed.so
+
+## Copy the signed enclave to the current directory
+
+EnclaveHash.signed.so: EnclaveHash/EnclaveHash.signed.so
+	ln -s $?
+
 endif
 
 
@@ -72,10 +79,13 @@ bin_PROGRAMS = storesecret
 ## have to be explicitly listed.
 
 storesecret_SOURCES = main.c
-if SGX_ENABLED
+if SGX_WITH_SGXSDK
 storesecret_SOURCES += sgx_detect_linux.c sgx_stub.c
+endif
+if SGX_ENABLED
 nodist_storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
+EXTRA_storesecret_DEPENDENCIES = EnclaveHash.signed.so
 endif
 
 
@@ -91,7 +101,9 @@ endif
 ## Use the variables, not the actualy library names to ensure these
 ## targets work on simulation builds.
 
-if SGX_ENABLED
+if SGX_WITH_SGXSDK
 storesecret_LDADD=-l$(SGX_URTS_LIB) -ldl -l:libsgx_capable.a -lpthread
+else
+storesecret_LDADD=$(OE_APP_LDADD)
 endif
 

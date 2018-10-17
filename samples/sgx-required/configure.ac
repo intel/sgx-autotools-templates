@@ -1,4 +1,4 @@
-AC_INIT(sgx-autotools, 1.0, john.p.mechalas@intel.com)
+AC_INIT(storesecret, 1.1, john.p.mechalas@intel.com)
 
 AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([foreign])

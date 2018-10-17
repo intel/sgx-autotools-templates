@@ -34,9 +34,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 
 #ifdef HAVE_SGX
-# include "EnclaveHash_u.h"
-# include "sgx_stub.h"
-# include <sgx_urts.h>
+#  include "EnclaveHash_u.h"
+# ifdef SGX_HAVE_SGXSDK
+#  include "sgx_stub.h"
+#  include <sgx_urts.h>
+# else
+#  include <openenclave/host.h>
+# endif
 #else
 # include <openssl/sha.h>
 #endif
@@ -56,16 +60,46 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef HAVE_SGX
 
+# ifdef SGX_HW_SIM
+#  define SGX_SIM_FLAG 1
+# else
+#  define SGX_SIM_FLAG 0
+# endif
+
+/* This is a hack */
+# ifndef SGX_DEBUG_FLAG
+#  define SGX_DEBUG_FLAG OE_DEBUG_FLAG
+# endif
+
+# define ENCLAVE_NAME "EnclaveHash.signed.so"
+
+typedef struct _enclave_meta_struct {
+# ifdef SGX_HAVE_SGXSDK
+	sgx_launch_token_t *token;
+	int updated;
+	sgx_enclave_id_t enclave;
+	sgx_misc_attribute_t attr;
+# else
+	oe_enclave_type_t type;
+	void *config;
+	uint32_t config_size;
+	oe_enclave_t *enclave;
+# endif
+} enclave_meta_t;
+
+
 int file_in_searchpath (const char *file, char *search, char *fullpath,
 	size_t len);
 
-sgx_status_t sgx_create_enclave_search (
+# ifdef SGX_HAVE_SGXSDK
+sgx_status_t create_enclave_search (
+# else
+oe_result_t create_enclave_search (
+# endif
 	const char *filename,
 	const int debug,
-	sgx_launch_token_t *token,
-	int *updated,
-	sgx_enclave_id_t *eid,
-	sgx_misc_attribute_t *attr
+	const int sim,
+	enclave_meta_t *e
 );
 
 #endif
@@ -74,10 +108,12 @@ int main (int argc, char *argv[])
 {
 	char msg[MAX_LEN];
 #ifdef HAVE_SGX
-	sgx_launch_token_t token= { 0 };
+	enclave_meta_t e;
+# ifdef SGX_HAVE_SGXSDK
 	sgx_status_t status;
-	sgx_enclave_id_t eid= 0;
-	int updated= 0;
+# else
+	oe_result_t status;
+# endif
 #else
 	int status;
 #endif
@@ -85,6 +121,18 @@ int main (int argc, char *argv[])
 	unsigned char sha2[32];
 
 #ifdef HAVE_SGX
+
+# ifdef SGX_HAVE_SGXSDK
+	e.token= 0;
+	e.updated= 0;
+	e.enclave= 0;
+# else
+	e.config= NULL;
+	e.config_size= 0;
+	e.type= OE_ENCLAVE_TYPE_SGX;
+# endif
+
+# ifdef SGX_HAVE_SGXSDK
 	/* Can we run SGX? */
 
 	if ( ! have_sgx_psw() ) {
@@ -92,10 +140,13 @@ int main (int argc, char *argv[])
 		fprintf(stderr, "This system cannot use Intel SGX.\n");
 		exit(1);
 	}
+# endif
 
 	/* Launch the enclave */
 
-	status= sgx_create_enclave_search("EnclaveHash.signed.so", SGX_DEBUG_FLAG, &token, &updated, &eid, 0);
+	status= create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG,
+		SGX_SIM_FLAG, &e);
+# ifdef SGX_HAVE_SGXSDK
 	if ( status != SGX_SUCCESS ) {
 		if ( status == SGX_ERROR_ENCLAVE_FILE_ACCESS ) {
 			fprintf(stderr, "sgx_create_enclave: EnclaveHash.signed.so: file not found\n");
@@ -106,6 +157,13 @@ int main (int argc, char *argv[])
 		}
 		return 1;
 	}
+# else
+	if ( status != OE_OK ) {
+		fprintf(stderr, "oe_create_enclave: %s: %s\n", ENCLAVE_NAME,
+			oe_result_str(status));
+		return 1;
+	}
+# endif
 #endif
 
 	/* Turn off I/O buffering for stdin */
@@ -122,11 +180,18 @@ int main (int argc, char *argv[])
 	}
 
 #ifdef HAVE_SGX
-	status= store_secret(eid, msg);
+	status= store_secret(e.enclave, msg);
+# ifdef SGX_HAVE_SGXSDK
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL store_secret: %08x\n", status);
 		return 1;
 	}
+# else
+	if ( status != OE_OK ) {
+		fprintf(stderr, "ECALL store_secret: %s\n", oe_result_str(status));
+		return 1;
+	}
+# endif
 
 	/* Delete the secret from memory */
 
@@ -137,15 +202,23 @@ int main (int argc, char *argv[])
 	printf("Secret stored in the enclave.\n");
 
 	/* Get the SHA256 hash of the secret from the enclave */
-	status= get_hash(eid, &rv, sha2);
+	status= get_hash(e.enclave, &rv, sha2);
+# ifdef SGX_HAVE_SGXSDK
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL get_hash: %08x\n", status);
 		return 1;
 	}
+# else
+	if ( status != OE_OK ) {
+		fprintf(stderr, "ECALL store_secret: %s\n", oe_result_str(status));
+		return 1;
+	}
+# endif
 	if ( rv == 0 ) {
 		fprintf(stderr, "get_hash: could not calculate hash\n");
 		return 1;
 	}	
+
 #else
 	/* Generate a SHA-256 hash of the message */
 	SHA256((unsigned char *) msg, strlen(msg), (unsigned char *)sha2);
@@ -172,47 +245,99 @@ int main (int argc, char *argv[])
  * Search for the enclave file and then try and load it.
  */
 
-sgx_status_t sgx_create_enclave_search (const char *filename, const int debug,
-	sgx_launch_token_t *token, int *updated, sgx_enclave_id_t *eid,
-	sgx_misc_attribute_t *attr)
+# ifdef SGX_HAVE_SGXSDK
+sgx_status_t create_enclave_search (const char *filename, const int debug,
+# else
+oe_result_t create_enclave_search (const char *filename, const int debug,
+# endif
+	const int sim, enclave_meta_t *e)
 {
 	struct stat sb;
 	char epath[PATH_MAX];	/* includes NULL */
+# ifdef SGX_HAVE_OPENENCLAVE
+	uint32_t flags= 0;
+# endif
+
+# ifdef SGX_HAVE_OPENENCLAVE
+	if ( debug ) flags|= OE_ENCLAVE_FLAG_DEBUG;
+	if ( sim )   flags|= OE_ENCLAVE_FLAG_SIMULATE;
+# endif
 
 	/* Is filename an absolute path? */
 
-	if ( filename[0] == '/' ) 
-		return sgx_create_enclave(filename, debug, token, updated, eid, attr);
+	if ( filename[0] == '/' ) {
+# ifdef SGX_HAVE_SGXSDK
+		return sgx_create_enclave(filename, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
+# else
+		return oe_create_enclave(filename, e->type, flags, e->config,
+			e->config_size, &e->enclave);
+# endif
+	}
 
 	/* Is the enclave in the current working directory? */
 
-	if ( stat(filename, &sb) == 0 )
-		return sgx_create_enclave(filename, debug, token, updated, eid, attr);
+	if ( stat(filename, &sb) == 0 ) {
+# ifdef SGX_HAVE_SGXSDK
+		return sgx_create_enclave(filename, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
+# else
+		return oe_create_enclave(filename, e->type, flags, e->config,
+			e->config_size, &e->enclave);
+# endif
+	}
 
 	/* Search the paths in LD_LBRARY_PATH */
 
-	if ( file_in_searchpath(filename, getenv("LD_LIBRARY_PATH"), epath, PATH_MAX) )
-		return sgx_create_enclave(epath, debug, token, updated, eid, attr);
+	if ( file_in_searchpath(filename, getenv("LD_LIBRARY_PATH"), epath, PATH_MAX) ) {
+# ifdef SGX_HAVE_SGXSDK
+		return sgx_create_enclave(epath, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
+# else
+		return oe_create_enclave(epath, e->type, flags, e->config,
+			e->config_size, &e->enclave);
+# endif
+	}
 		
 	/* Search the paths in DT_RUNPATH */
 
-	if ( file_in_searchpath(filename, getenv("DT_RUNPATH"), epath, PATH_MAX) )
-		return sgx_create_enclave(epath, debug, token, updated, eid, attr);
+	if ( file_in_searchpath(filename, getenv("DT_RUNPATH"), epath, PATH_MAX) ) {
+# ifdef SGX_HAVE_SGXSDK
+		return sgx_create_enclave(epath, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
+# else
+		return oe_create_enclave(epath, e->type, flags, e->config,
+			e->config_size, &e->enclave);
+# endif
+	}
 
 	/* Standard system library paths */
 
-	if ( file_in_searchpath(filename, DEF_LIB_SEARCHPATH, epath, PATH_MAX) )
-		return sgx_create_enclave(epath, debug, token, updated, eid, attr);
+	if ( file_in_searchpath(filename, DEF_LIB_SEARCHPATH, epath, PATH_MAX) ) {
+# ifdef SGX_HAVE_SGXSDK
+		return sgx_create_enclave(epath, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
+# else
+		return oe_create_enclave(epath, e->type, flags, e->config,
+			e->config_size, &e->enclave);
+# endif
+	}
 
 	/*
 	 * If we've made it this far then we don't know where else to look.
 	 * Just call sgx_create_enclave() which assumes the enclave is in
 	 * the current working directory. This is almost guaranteed to fail,
-	 * but it will insure we are consistent about the error codes that
+	 * but it will ensure we are consistent about the error codes that
 	 * get reported to the calling function.
 	 */
 
-	return sgx_create_enclave(filename, debug, token, updated, eid, attr);
+# ifdef SGX_HAVE_SGXSDK
+	return sgx_create_enclave(filename, debug, e->token, &e->updated,
+		&e->enclave, &e->attr);
+# else
+	return oe_create_enclave(filename, e->type, flags, e->config,
+		e->config_size, &e->enclave);
+# endif
 }
 
 int file_in_searchpath (const char *file, char *search, char *fullpath, 
@@ -257,4 +382,3 @@ int file_in_searchpath (const char *file, char *search, char *fullpath,
 }
 
 #endif
-

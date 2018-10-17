@@ -49,7 +49,11 @@ include $(top_srcdir)/build-aux/sgx_enclave.am
 ##    libexec_PROGRAMS=$(ENCLAVE)
 
 ENCLAVE=EnclaveHash
+if SGX_WITH_SGXSDK
 ENCLAVE_CONFIG=$(ENCLAVE).config.xml
+else
+ENCLAVE_CONFIG=$(ENCLAVE).conf
+endif
 ENCLAVE_KEY=$(ENCLAVE)_private.pem
 
 
@@ -68,7 +72,7 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 ## Additional files to remove with 'make clean'. This list needs
 ## to include your edger8r genreated files.
 
-CLEANFILES+= EnclaveHash_t.c EnclaveHash_t.h 
+CLEANFILES+= EnclaveHash_t.c EnclaveHash_t.h EnclaveHash_args.h
 
 
 ## Put your sources here. Don't forget to list the _t.c and _t.h 
@@ -95,7 +99,7 @@ EnclaveHash_SOURCES = EnclaveHash_t.c EnclaveHash_t.h EnclaveHash.c \
 ## of the definition to make sure you pick up the right linker flags
 ## and SGX trusted libraries.
 
-EnclaveHash_LDADD = @SGX_ENCLAVE_LDADD@
+EnclaveHash_LDADD = @SGX_ENCLAVE_LDADD@ @OE_ENCLAVE_LDADD@
 
 
 ## Place any additional trusted libraries that your enclave may need in

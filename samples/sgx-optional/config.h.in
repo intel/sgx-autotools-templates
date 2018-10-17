@@ -1,9 +1,9 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Enable debugging */
+/* Enable enclave debugging (SGX SDK) */
 #undef DEBUG
 
-/* Flag set for prerelease builds */
+/* Enclave debugging in prerelease builds (SGX SDK) */
 #undef EDEBUG
 
 /* Define to 1 if you have the <inttypes.h> header file. */
@@ -33,14 +33,20 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
+/* Set to 1 if the trusted library has the fprintf function */
+#undef HAVE_TSTDC_FPRINTF
+
+/* The trusted library has the <stdio.h> header file. */
+#undef HAVE_TSTDC_STDIO_H
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Flag set for prerelease and release builds */
+/* No enclave debugging in release builds (SGX SDK) */
 #undef NDEBUG
 
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
+/* Enable enclave debugging (Open Enclave) */
+#undef OE_DEBUG_FLAG
 
 /* Name of package */
 #undef PACKAGE
@@ -62,6 +68,12 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Define if building for SGX with OpenEnclave */
+#undef SGX_HAVE_OPENENCLAVE
+
+/* Define if building for SGX with the Intel SGX SDK */
+#undef SGX_HAVE_SGXSDK
 
 /* Enable hardware simulation mode */
 #undef SGX_HW_SIM

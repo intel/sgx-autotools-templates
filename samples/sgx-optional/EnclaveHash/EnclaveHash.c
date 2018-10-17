@@ -1,6 +1,6 @@
 /*
 
-Copyright 2017 Intel Corporation
+Copyright 2018 Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -31,22 +31,46 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include "config.h"
 #include "EnclaveHash_t.h"
 #include <string.h>
+#ifdef SGX_HAVE_SGXSDK
 #include <sgx_tcrypto.h>
+#else
+#include <openenclave/enclave.h>
+#include <openenclave/3rdparty/mbedtls/sha256.h>
+#endif
+#ifdef HAVE_TSTDC_STDIO_H
+#include <stdio.h>
+#endif
 
 char secret[81];
 
 void store_secret(char *s)
 {
 	strncpy(secret, s, 80);
+#ifdef HAVE_TSTDC_FPRINTF
+	fprintf(stderr, "(EnclaveHash) Secret stored in the enclave.\n");
+#endif
 }
 
 int get_hash(unsigned char hash[32])
 {
+#ifdef SGX_HAVE_SGXSDK
 	sgx_status_t status;
 
 	status= sgx_sha256_msg((uint8_t *) secret, strlen(secret), (sgx_sha256_hash_t *) hash);
 	return (status == SGX_SUCCESS) ? 1 : 0;
+#else
+	oe_result_t status;
+	mbedtls_sha256_context ctx;
+
+	mbedtls_sha256_init(&ctx);
+	mbedtls_sha256_starts_ret(&ctx, 0);
+	mbedtls_sha256_update_ret(&ctx, secret, strlen(secret));
+	mbedtls_sha256_finish_ret(&ctx, hash);
+
+	return 1;
+#endif
 }
 
