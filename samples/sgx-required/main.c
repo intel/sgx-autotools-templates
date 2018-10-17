@@ -58,13 +58,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SGX_SIM_FLAG 0
 #endif
 
-/* How the Intel SGX_SDK defines SGX_DEBUG_FLAG */
+/* This is a hack */
 #ifndef SGX_DEBUG_FLAG
-# if !defined(NDEBUG) || defined(EDEBUG)
-#  define SGX_DEBUG_FLAG ((int)1)
-# else
-#  define SGX_DEBUG_FLAG ((int)1)
-# endif
+# define SGX_DEBUG_FLAG OE_DEBUG_FLAG
 #endif
 
 #define ENCLAVE_NAME "EnclaveHash.signed.so"
@@ -73,7 +69,7 @@ typedef struct _enclave_meta_struct {
 #ifdef SGX_HAVE_SGXSDK
 	sgx_launch_token_t *token;
 	int updated;
-	sgx_enclave_id_t eid;
+	sgx_enclave_id_t enclavereg;
 	sgx_misc_attribute_t attr;
 #else
 	oe_enclave_type_t type;
@@ -101,7 +97,7 @@ oe_result_t create_enclave_search (
 int main (int argc, char *argv[])
 {
 	char msg[MAX_LEN];
-	enclave_meta_t enclave;
+	enclave_meta_t e;
 #ifdef SGX_HAVE_SGXSDK
 	sgx_status_t status;
 #else
@@ -111,13 +107,13 @@ int main (int argc, char *argv[])
 	unsigned char sha2[32];
 
 #ifdef SGX_HAVE_SGXSDK
-	enclave.token= 0;
-	enclave.updated= 0;
-	enclave.eid= 0;
+	e.token= 0;
+	e.updated= 0;
+	e.enclave= 0;
 #else
-	enclave.config= NULL;
-	enclave.config_size= 0;
-	enclave.type= OE_ENCLAVE_TYPE_SGX;
+	e.config= NULL;
+	e.config_size= 0;
+	e.type= OE_ENCLAVE_TYPE_SGX;
 #endif
 
 	/* Can we run SGX? */
@@ -132,8 +128,8 @@ int main (int argc, char *argv[])
 
 	/* Launch the enclave */
 
-	status= create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG, SGX_SIM_FLAG,
-		&enclave);
+	status= create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG,
+		SGX_SIM_FLAG, &e);
 #ifdef SGX_HAVE_SGXSDK
 	if ( status != SGX_SUCCESS ) {
 		if ( status == SGX_ERROR_ENCLAVE_FILE_ACCESS ) {
@@ -167,14 +163,13 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 
+	status= store_secret(e.enclave, msg);
 #ifdef SGX_HAVE_SGXSDK
-	status= store_secret(enclave.eid, msg);
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL store_secret: %08x\n", status);
 		return 1;
 	}
 #else
-	status= store_secret(enclave.enclave, msg);
 	if ( status != OE_OK ) {
 		fprintf(stderr, "ECALL store_secret: %s\n", oe_result_str(status));
 		return 1;
@@ -190,14 +185,13 @@ int main (int argc, char *argv[])
 	printf("Secret stored in the enclave.\n");
 
 	/* Get the SHA256 hash of the secret from the enclave */
+	status= get_hash(e.enclave, &rv, sha2);
 #ifdef SGX_HAVE_SGXSDK
-	status= get_hash(enclave.eid, &rv, sha2);
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL get_hash: %08x\n", status);
 		return 1;
 	}
 #else
-	status= get_hash(enclave.enclave, &rv, sha2);
 	if ( status != OE_OK ) {
 		fprintf(stderr, "ECALL get_hash: %s\n", oe_result_str(status));
 		return 1;
@@ -232,7 +226,7 @@ sgx_status_t create_enclave_search (const char *filename, const int debug,
 #else
 oe_result_t create_enclave_search (const char *filename, const int debug,
 #endif
-	const int sim, enclave_meta_t *enclave)
+	const int sim, enclave_meta_t *e)
 {
 	struct stat sb;
 	char epath[PATH_MAX];	/* includes NULL */
@@ -249,11 +243,11 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 
 	if ( filename[0] == '/' ) {
 #ifdef SGX_HAVE_SGXSDK
-		return sgx_create_enclave(filename, debug, enclave->token,
-			&enclave->updated, &enclave->eid, &enclave->attr);
+		return sgx_create_enclave(filename, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
 #else
-		return oe_create_enclave(filename, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave);
+		return oe_create_enclave(filename, e->type, flags, e->config,
+			e->config_size, &e->enclave);
 #endif
 	}
 
@@ -261,11 +255,11 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 
 	if ( stat(filename, &sb) == 0 ) {
 #ifdef SGX_HAVE_SGXSDK
-		return sgx_create_enclave(filename, debug, enclave->token,
-			&enclave->updated, &enclave->eid, &enclave->attr);
+		return sgx_create_enclave(filename, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
 #else
-		return oe_create_enclave(filename, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave);
+		return oe_create_enclave(filename, e->type, flags, e->config,
+			e->config_size, &e->enclave);
 #endif
 	}
 
@@ -273,11 +267,11 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 
 	if ( file_in_searchpath(filename, getenv("LD_LIBRARY_PATH"), epath, PATH_MAX) ) {
 #ifdef SGX_HAVE_SGXSDK
-		return sgx_create_enclave(epath, debug, enclave->token,
-			&enclave->updated, &enclave->eid, &enclave->attr);
+		return sgx_create_enclave(epath, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
 #else
-		return oe_create_enclave(epath, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave);
+		return oe_create_enclave(epath, e->type, flags, e->config,
+			e->config_size, &e->enclave);
 #endif
 	}
 		
@@ -285,11 +279,11 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 
 	if ( file_in_searchpath(filename, getenv("DT_RUNPATH"), epath, PATH_MAX) ) {
 #ifdef SGX_HAVE_SGXSDK
-		return sgx_create_enclave(epath, debug, enclave->token,
-			&enclave->updated, &enclave->eid, &enclave->attr);
+		return sgx_create_enclave(epath, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
 #else
-		return oe_create_enclave(epath, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave);
+		return oe_create_enclave(epath, e->type, flags, e->config,
+			e->config_size, &e->enclave);
 #endif
 	}
 
@@ -297,11 +291,11 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 
 	if ( file_in_searchpath(filename, DEF_LIB_SEARCHPATH, epath, PATH_MAX) ) {
 #ifdef SGX_HAVE_SGXSDK
-		return sgx_create_enclave(epath, debug, enclave->token,
-			&enclave->updated, &enclave->eid, &enclave->attr);
+		return sgx_create_enclave(epath, debug, e->token, &e->updated,
+			&e->enclave, &e->attr);
 #else
-		return oe_create_enclave(epath, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave);
+		return oe_create_enclave(epath, e->type, flags, e->config,
+			e->config_size, &e->enclave);
 #endif
 	}
 
@@ -314,11 +308,11 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 	 */
 
 #ifdef SGX_HAVE_SGXSDK
-	return sgx_create_enclave(filename, debug, enclave->token,
-		&enclave->updated, &enclave->eid, &enclave->attr);
+	return sgx_create_enclave(filename, debug, e->token, &e->updated,
+		&e->enclave, &e->attr);
 #else
-	return oe_create_enclave(filename, enclave->type, flags,
-		enclave->config, enclave->config_size, &enclave->enclave);
+	return oe_create_enclave(filename, e->type, flags, e->config,
+		e->config_size, &e->enclave);
 #endif
 }
 

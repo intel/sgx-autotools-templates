@@ -11,27 +11,26 @@ AC_DEFUN([SGX_CONFIG_OPENENCLAVE],[
 		]
 	)
 	AS_IF([test "x$_sgxbuild" = "xdebug"], [
-			AC_DEFINE(DEBUG, 1, [Enable debugging])
+			oe_debug=1
 			AC_SUBST(ENCLAVE_SIGN_TARGET, [signed_enclave_dev])
 		],
 		[test "x$_sgxbuild" = "xprerelease"], [
-			AC_DEFINE(NDEBUG, 1, [Flag set for prerelease and release builds])
-			AC_DEFINE(EDEBUG, 1, [Flag set for prerelease builds])
+			oe_debug=1
 			AC_SUBST(ENCLAVE_SIGN_TARGET, [signed_enclave_dev])
 		],
 		[test "x$_sgxbuild" = "xrelease"], [
+			oe_debug=0
 			AS_IF(test "x$_sgxsim" = "xyes", [
 				AC_MSG_ERROR([Can't build in both release and simulation mode])
 			],
 			[
-				AC_DEFINE(NDEBUG, 1)
 				AC_SUBST(ENCLAVE_SIGN_TARGET, [signed_enclave_rel])
 			])
 		],
 		[AC_MSG_ERROR([Unknown build mode $_sgxbuild])]
 	)
-	AC_SUBST(SGX_DEBUG_FLAGS, [$_sgxdebug])
 
+	AC_DEFINE_UNQUOTED(OE_DEBUG_FLAG, $oe_debug, [Enable enclave debugging (Open Enclave)])
 	AC_SUBST(OE)
 	AC_SUBST(OE_INCDIR, $OE/include)
 

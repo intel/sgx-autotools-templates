@@ -1,9 +1,9 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Enable debugging */
+/* Enable enclave debugging (SGX SDK) */
 #undef DEBUG
 
-/* Flag set for prerelease builds */
+/* Enclave debugging in prerelease builds (SGX SDK) */
 #undef EDEBUG
 
 /* Define to 1 if you have the `fprintf' function. */
@@ -39,8 +39,11 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Flag set for prerelease and release builds */
+/* No enclave debugging in release builds (SGX SDK) */
 #undef NDEBUG
+
+/* Enable enclave debugging (Open Enclave) */
+#undef OE_DEBUG_FLAG
 
 /* Name of package */
 #undef PACKAGE
