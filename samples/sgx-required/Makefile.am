@@ -69,7 +69,10 @@ EnclaveHash.signed.so: EnclaveHash/EnclaveHash.signed.so
 ## You can't use $(wildcard ...) with automake so all source files 
 ## have to be explicitly listed.
 
-storesecret_SOURCES = main.c sgx_detect_linux.c sgx_stub.c 
+storesecret_SOURCES = main.c
+if SGX_WITH_SGXSDK
+storesecret_SOURCES += sgx_detect_linux.c sgx_stub.c 
+endif
 nodist_storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 EXTRA_storesecret_DEPENDENCIES = EnclaveHash.signed.so
 BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
@@ -86,6 +89,10 @@ BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 ## Use the variables, not the actualy library names to ensure these
 ## targets work on simulation builds.
 
+if SGX_WITH_SGXSDK
 storesecret_LDADD=-l$(SGX_URTS_LIB) -ldl -l:libsgx_capable.a -lpthread
+else
+storesecret_LDADD=@OE_APP_LDADD@
+endif
 
 

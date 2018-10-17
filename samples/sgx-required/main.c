@@ -58,6 +58,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SGX_SIM_FLAG 0
 #endif
 
+/* How the Intel SGX_SDK defines SGX_DEBUG_FLAG */
+#ifndef SGX_DEBUG_FLAG
+# if !defined(NDEBUG) || defined(EDEBUG)
+#  define SGX_DEBUG_FLAG ((int)1)
+# else
+#  define SGX_DEBUG_FLAG ((int)1)
+# endif
+#endif
+
 #define ENCLAVE_NAME "EnclaveHash.signed.so"
 
 typedef struct _enclave_meta_struct {
@@ -96,7 +105,7 @@ int main (int argc, char *argv[])
 #ifdef SGX_HAVE_SGXSDK
 	sgx_status_t status;
 #else
-	oe_status_t status;
+	oe_result_t status;
 #endif
 	int rv, i;
 	unsigned char sha2[32];
@@ -113,11 +122,13 @@ int main (int argc, char *argv[])
 
 	/* Can we run SGX? */
 
+#ifdef SGX_HAVE_SGXSDK
 	if ( ! have_sgx_psw() ) {
 		fprintf(stderr, "Intel SGX runtime libraries not found.\n");
 		fprintf(stderr, "This system cannot use Intel SGX.\n");
 		exit(1);
 	}
+#endif
 
 	/* Launch the enclave */
 
@@ -158,13 +169,17 @@ int main (int argc, char *argv[])
 
 #ifdef SGX_HAVE_SGXSDK
 	status= store_secret(enclave.eid, msg);
-#else
-	status= store_secret(enclave.enclave, msg);
-#endif
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL store_secret: %08x\n", status);
 		return 1;
 	}
+#else
+	status= store_secret(enclave.enclave, msg);
+	if ( status != OE_OK ) {
+		fprintf(stderr, "ECALL store_secret: %s\n", oe_result_str(status));
+		return 1;
+	}
+#endif
 
 	/* Delete the secret from memory */
 
@@ -177,13 +192,17 @@ int main (int argc, char *argv[])
 	/* Get the SHA256 hash of the secret from the enclave */
 #ifdef SGX_HAVE_SGXSDK
 	status= get_hash(enclave.eid, &rv, sha2);
-#else
-	status= get_hash(enclave.enclave, &rv, sha2);
-#endif
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL get_hash: %08x\n", status);
 		return 1;
 	}
+#else
+	status= get_hash(enclave.enclave, &rv, sha2);
+	if ( status != OE_OK ) {
+		fprintf(stderr, "ECALL get_hash: %s\n", oe_result_str(status));
+		return 1;
+	}
+#endif
 	if ( rv == 0 ) {
 		fprintf(stderr, "get_hash: could not calculate hash\n");
 		return 1;
@@ -234,8 +253,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&enclave->updated, &enclave->eid, &enclave->attr);
 #else
 		return oe_create_enclave(filename, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave)
-		return
+			enclave->config, enclave->config_size, &enclave->enclave);
 #endif
 	}
 
@@ -247,7 +265,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&enclave->updated, &enclave->eid, &enclave->attr);
 #else
 		return oe_create_enclave(filename, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave)
+			enclave->config, enclave->config_size, &enclave->enclave);
 #endif
 	}
 
@@ -259,7 +277,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&enclave->updated, &enclave->eid, &enclave->attr);
 #else
 		return oe_create_enclave(epath, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave)
+			enclave->config, enclave->config_size, &enclave->enclave);
 #endif
 	}
 		
@@ -271,7 +289,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&enclave->updated, &enclave->eid, &enclave->attr);
 #else
 		return oe_create_enclave(epath, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave)
+			enclave->config, enclave->config_size, &enclave->enclave);
 #endif
 	}
 
@@ -283,7 +301,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&enclave->updated, &enclave->eid, &enclave->attr);
 #else
 		return oe_create_enclave(epath, enclave->type, flags,
-			enclave->config, enclave->config_size, &enclave->enclave)
+			enclave->config, enclave->config_size, &enclave->enclave);
 #endif
 	}
 
@@ -300,7 +318,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 		&enclave->updated, &enclave->eid, &enclave->attr);
 #else
 	return oe_create_enclave(filename, enclave->type, flags,
-		enclave->config, enclave->config_size, &enclave->enclave)
+		enclave->config, enclave->config_size, &enclave->enclave);
 #endif
 }
 

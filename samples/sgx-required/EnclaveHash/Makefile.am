@@ -99,7 +99,7 @@ EnclaveHash_SOURCES = EnclaveHash_t.c EnclaveHash_t.h EnclaveHash.c \
 ## of the definition to make sure you pick up the right linker flags
 ## and SGX trusted libraries.
 
-EnclaveHash_LDADD = @SGX_ENCLAVE_LDADD@
+EnclaveHash_LDADD = @SGX_ENCLAVE_LDADD@ @OE_ENCLAVE_LDADD@
 
 
 ## Place any additional trusted libraries that your enclave may need in

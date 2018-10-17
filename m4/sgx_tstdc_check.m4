@@ -152,9 +152,9 @@ AC_DEFUN([_SGX_TSTDC_COMPILER_FLAGS_SET],[
 		old_CFLAGS="$CFLAGS"
 		old_CPPFLAGS="$CPPFLAGS"
 		old_CXXFLAGS="$CXXFLAGS"
-		CFLAGS="${ac_cv_sgx_tlib_cflags}"
-		CPPFLAGS="-nostdinc -nostdinc++ ${ac_cv_sgx_tlib_cppflags}"
-		CXXFLAGS="${ac_cv_sgx_tlib_cxxflags}"
+		CFLAGS="${ac_cv_sgx_enclave_cflags}"
+		CPPFLAGS="-nostdinc -nostdinc++ ${ac_cv_sgx_enclave_cppflags}"
+		CXXFLAGS="${ac_cv_sgx_enclave_cxxflags}"
 		old_echo_n="${as_echo_n}"
 		as_echo_n='echo -n Intel SGX: '
 ])
@@ -172,14 +172,19 @@ AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_SET],[
 		old_CXXFLAGS="$CXXFLAGS"
 		old_LDFLAGS="$LDFLAGS"
 		old_LIBS="$LIBS"
-		CFLAGS="${ac_cv_sgx_tlib_cflags}"
-		CPPFLAGS="${ac_cv_sgx_tlib_cppflags}"
-		CXXFLAGS="${ac_cv_sgx_tlib_cxxflags}"
+		CFLAGS="${ac_cv_sgx_enclave_cflags}"
+		CPPFLAGS="${ac_cv_sgx_enclave_cppflags}"
+		CXXFLAGS="${ac_cv_sgx_enclave_cxxflags}"
 		dnl We have to do thiese a litte differently to ensure a clean
 		dnl link. Remember, we are just trying to ensure the symbol
 		dnl is found, not produce a usable object.
-		LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,__ImageBase=0 -Wl,--defsym,_start=0 -Wl,--defsym,g_ecall_table=0 -Wl,--defsym,g_dyn_entry_table=0"
-		LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc -lsgx_trts -lsgx_tcrypto -Wl,--end-group"
+		AS_IF([test "$ac_cv_sgx_toolkit" = "intel-sgxsdk"],[
+			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,__ImageBase=0 -Wl,--defsym,_start=0 -Wl,--defsym,g_ecall_table=0 -Wl,--defsym,g_dyn_entry_table=0"
+			LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc -lsgx_trts -lsgx_tcrypto -Wl,--end-group"
+		],[
+			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin"
+			LIBS="${ac_cv_sgx_enclave_ldadd}"
+		])
 		old_echo_n="${as_echo_n}"
 		as_echo_n='echo -n Intel SGX: '
 ])

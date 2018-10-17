@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <openenclave/enclave.h>
 #include <openenclave/3rdparty/mbedtls/sha256.h>
 #endif
-#ifdef HAVE_FPRINTF
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
 
@@ -50,7 +50,7 @@ void store_secret(char *s)
 {
 	strncpy(secret, s, 80);
 #ifdef HAVE_FPRINTF
-	fprintf(stderr, "Secret stored in enclave\n");
+	fprintf(stderr, "(EnclaveHash) Secret stored in the enclave.\n");
 #endif
 }
 
