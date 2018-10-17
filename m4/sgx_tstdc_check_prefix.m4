@@ -94,7 +94,10 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADER_PREFIX], [
 		AS_VAR_COPY([o_ac_cv_header_$header],[ac_cv_header_$header])
 		AS_UNSET([ac_cv_header_$header])
 	])
-	SGX_TSTDC_CHECK_HEADER([$1], [$2], [$3], [$4])
+	m4_if(m4_min(4,m4_count($*)),4,
+		[SGX_TSTDC_CHECK_HEADER([$1], [$2], [$3], [$4])],
+		[SGX_TSTDC_CHECK_HEADER([$1], [$2], [$3], [ ])]
+	)
 	AS_VAR_COPY([ac_cv_tstdc_header_$header],[ac_cv_header_$header])
 	AS_VAR_SET_IF([o_ac_cv_header_$header], [
 		AS_VAR_COPY([ac_cv_header_$header],[o_ac_cv_header_$header])
