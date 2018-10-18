@@ -218,7 +218,8 @@ trusted build might do the following:
   ])
 ```
 
-**Warning:** Since these macros call the equivalent AC_CHECK_\* macro,
+**Warning:**
+<blockquote>Since these macros call the equivalent AC_CHECK_\* macro,
 they will by default define the symbol HAVE_\* for each function found.
 When building just a trusted library or enclave this is fine, but if a
 common autoconf configuration is used for both _untrusted_ applications
@@ -226,12 +227,12 @@ and libaries _and_ trusted ones (enclaves and trusted libraries), then
 the untrusted code will have incorrect definitions. These macros also
 collide with AC_CHECK_\* since they share the same cache variables.
 **Use the SGX_TSTDC_CHECK_\*_PREFIX macros if your autoconfig file is
-used to create both trusted and untrusted code.**
+used to create both trusted and untrusted code.**</blockquote>
 
 ### SGX_TSTDC_CHECK_\*_PREFIX
 
 These macros work like SGX_TSTDC_CHECK_\*, only they assign a prefix of
-"tstdc_" to cache variables, and "TSTD_C" to precoressor symbols. They
+"tstdc_" to cache variables, and "TSTDC_" to preprocessor symbols. They
 allow you to search for the same symbol name in both trusted and untrusted
 libraries. For example,
 
@@ -261,6 +262,10 @@ and the following symbol definitions:
   #define HAVE_TSTDC_SNPRINTF 1
   #define HAVE_TSTDC_SSCANF 0
 ```
+
+SGX_TSTDC_CHECK_HEADER and SGX_TSTDC_CHECK_HEADERS do not use the default
+includes from AC_INCLUDES_DEFAULT (the default includes would cause
+erroneous test failures).
 
 ## Makefile substitution variables
 
@@ -413,6 +418,22 @@ at runtime. Simulation mode is a compile-time option for Intel SGX SDK applicati
   internally in the automake includes.
 
 ---
+
+## C Preprocessor Symbols
+
+These symbols are defined in `config.h`.
+
+**HAVE_SGX**
+
+  Defined if the build should utilize Intel SGX, and 0 if it should not.
+
+**SGX_WITH_OPENENCLAVE**
+
+  Defined if the project is being built against the Open Enclave SDK.
+
+**SGX_WITH_SGXSDK**
+
+  Defined if the project is being built against the Intel SGX SDK.
 
 ## Typical usage
 
@@ -635,17 +656,13 @@ stashes it in its secret "store", and returns a hash of the secret to
 be printed to STDOUT.
 
 These samples are independent of one another, so each must be built
-separately.
+separately. Both support the Intel SGX SDK and the Open Enclave SDK.
 
 ```
    $ ./bootstrap
    $ ./configure
    $ make
 ```
-
-**Note that these builds _do not_ place the signed enclave in the same
-directory as the application binary**, so you'll either need to set
-LD_LIBRARY_PATH or copy them manually.
 
 ### samples/sgx-required
 
@@ -655,7 +672,7 @@ simulation mode will not provide any hardware protection.
 
 ### samples/sgx-optional
 
-This build of _storesecret_ does not require the Intel SGX SDK. By
+This build of _storesecret_ does not require the Intel SGX. By
 default, it does not use Intel SGX and it stores its secret insecurely
 in main memory.
 
