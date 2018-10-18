@@ -1,10 +1,3 @@
-# Notice
-
-You are viewing a branch that is in active development. It contains
-undocumented features that will change before a final relase, and
-has only partial functionality. *Do not use the code in this branch
-for critical or production projects.*
-
 # Intel SGX Autotools Config
 
 The files in this package provide convenience macros and definitions
