@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #include "EnclaveHash_t.h"
 #include <string.h>
-#ifdef SGX_HAVE_SGXSDK
+#ifdef SGX_WITH_SGXSDK
 #include <sgx_tcrypto.h>
 #else
 #include <openenclave/enclave.h>
@@ -56,7 +56,7 @@ void store_secret(char *s)
 
 int get_hash(unsigned char hash[32])
 {
-#ifdef SGX_HAVE_SGXSDK
+#ifdef SGX_WITH_SGXSDK
 	sgx_status_t status;
 
 	status= sgx_sha256_msg((uint8_t *) secret, strlen(secret), (sgx_sha256_hash_t *) hash);

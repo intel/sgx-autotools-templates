@@ -3,7 +3,7 @@
 # Configure the SGX build for Open Enclave. This macro should not
 # be called directly. It's invoked by SGX_INIT.
 AC_DEFUN([SGX_CONFIG_OPENENCLAVE],[
-	AC_DEFINE([SGX_HAVE_OPENENCLAVE], 1,
+	AC_DEFINE([SGX_WITH_OPENENCLAVE], 1,
 		[Define if building for SGX with OpenEnclave])
 
 	AS_IF([test "x$sgxsim" = "xyes"], [

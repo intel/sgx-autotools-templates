@@ -1,37 +1,58 @@
 ## This must come first when building an application that uses Intel
-## SGX enclaves.
+## SGX enclaves. It can build against the Intel SGX SDK or Microsoft's
+## OpenEnclave
 
 include $(top_srcdir)/build-aux/sgx_app.am
 
-## It sets the following automake variables:
-##
-##   AM_CPPFLAGS = -I$(SGXSDK_INCDIR)
-##   AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
-##
-## And a pattern rule for building proxy functions from EDL files:
+## It adds a pattern rule for building proxy functions from EDL files:
 ##
 ##   %_u.h %_u.c: %.edl
 ##
-## And sets these Makefile variables:
+## And sets the following automake and Makefile variables:
+##
+## ----- Intel SGX SDK ----------------------------------------------
 ##
 ##   SGXSDK
 ##   SGXSDK_BINDIR
 ##   SGXSDK_INCDIR
 ##   SGXSDK_LIBDIR
+##   SGX_URTS_LIB
+##   SGX_UAE_SERVICE_LIB
+##   SGX_EDGER8R
+##
+##   AM_CPPFLAGS = -I$(SGXSDK_INCDIR)
+##   AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
+##
+## ----- OpenEnclave ------------------------------------------------
+##
+##   OE
+##   OE_BINDIR
+##   OE_INCDIR
+##   OE_LIBDIR
+##   OE_APP_LIBS
+##   OE_EDGER8R
+##
+##   AM_CPPFLAGS = -I$(OE_INCDIR)
+##   AM_LDFLAGS = -L$(OE_LIBDIR)
+##
+## ----- All --------------------------------------------------------
+##
 ##   SGXSSL
 ##   SGXSSL_BINDIR
 ##   SGXSSL_INCDIR
 ##   SGXSSL_LIBDIR
-##   SGX_URTS_LIB
-##   SGX_UAE_SERVICE_LIB
-##   SGX_EDGER8R
+##
 
 SUBDIRS = EnclaveHash
 
 
 ## Supply additional flags to edger8r here. 
 ##
+## if SGX_WITH_SGXSDK
 ## SGX_EDGER8R_FLAGS=
+## else
+## OE_EDGER8R_FLAGS=
+## endif
 
 
 ## Needed to make our pattern rule work
@@ -71,13 +92,14 @@ EnclaveHash.signed.so: EnclaveHash/EnclaveHash.signed.so
 
 storesecret_SOURCES = main.c
 if SGX_WITH_SGXSDK
+## Run-time feature detection is not available in OpenEnclave
 storesecret_SOURCES += sgx_detect_linux.c sgx_stub.c 
 endif
 nodist_storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
-EXTRA_storesecret_DEPENDENCIES = EnclaveHash.signed.so
 BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
+EXTRA_storesecret_DEPENDENCIES = EnclaveHash.signed.so
 
-## Library flags. At minimum, an Intel SGX application will need:
+## Library flags. At minimum, an Intel SGX SDK application will need:
 ##
 ##   -l$(SGX_URTS_LIB)
 ##
@@ -88,11 +110,13 @@ BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 ##
 ## Use the variables, not the actualy library names to ensure these
 ## targets work on simulation builds.
+##
+## OpenEnclave applications need, at minimum, $(OE_APP_LIBS)
 
 if SGX_WITH_SGXSDK
 storesecret_LDADD=-l$(SGX_URTS_LIB) -ldl -l:libsgx_capable.a -lpthread
 else
-storesecret_LDADD=@OE_APP_LDADD@
+storesecret_LDADD=$(OE_APP_LIBS)
 endif
 
 

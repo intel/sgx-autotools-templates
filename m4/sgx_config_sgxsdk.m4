@@ -3,7 +3,7 @@
 # Configure the SGX build for the Intel SGX SDK. This macro should not
 # be called directly. It's invoked by SGX_INIT.
 AC_DEFUN([SGX_CONFIG_SGXSDK],[
-	AC_DEFINE([SGX_HAVE_SGXSDK], 1,
+	AC_DEFINE([SGX_WITH_SGXSDK], 1,
 		[Define if building for SGX with the Intel SGX SDK])
 	AS_IF([test "x$sgxsim" = "xyes"], [
 			AC_SUBST(SGX_TRTS_LIB, [sgx_trts_sim])

@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef HAVE_SGX
 #  include "EnclaveHash_u.h"
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 #  include "sgx_stub.h"
 #  include <sgx_urts.h>
 # else
@@ -74,7 +74,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # define ENCLAVE_NAME "EnclaveHash.signed.so"
 
 typedef struct _enclave_meta_struct {
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	sgx_launch_token_t token;
 	int updated;
 	sgx_enclave_id_t enclave;
@@ -91,7 +91,7 @@ typedef struct _enclave_meta_struct {
 int file_in_searchpath (const char *file, char *search, char *fullpath,
 	size_t len);
 
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 sgx_status_t create_enclave_search (
 # else
 oe_result_t create_enclave_search (
@@ -109,7 +109,7 @@ int main (int argc, char *argv[])
 	char msg[MAX_LEN];
 #ifdef HAVE_SGX
 	enclave_meta_t e;
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	sgx_status_t status;
 # else
 	oe_result_t status;
@@ -122,7 +122,7 @@ int main (int argc, char *argv[])
 
 #ifdef HAVE_SGX
 
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	memset(e.token, 0, sizeof(e.token));
 	e.updated= 0;
 	e.enclave= 0;
@@ -133,7 +133,7 @@ int main (int argc, char *argv[])
 	e.type= OE_ENCLAVE_TYPE_SGX;
 # endif
 
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	/* Can we run SGX? */
 
 	if ( ! have_sgx_psw() ) {
@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
 
 	status= create_enclave_search(ENCLAVE_NAME, SGX_DEBUG_FLAG,
 		SGX_SIM_FLAG, &e);
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	if ( status != SGX_SUCCESS ) {
 		if ( status == SGX_ERROR_ENCLAVE_FILE_ACCESS ) {
 			fprintf(stderr, "sgx_create_enclave: EnclaveHash.signed.so: file not found\n");
@@ -182,7 +182,7 @@ int main (int argc, char *argv[])
 
 #ifdef HAVE_SGX
 	status= store_secret(e.enclave, msg);
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL store_secret: %08x\n", status);
 		return 1;
@@ -200,11 +200,11 @@ int main (int argc, char *argv[])
 	 * being optimized away */
 	memset(msg, 0, 80);	
 
-	printf("Secret stored in the enclave.\n");
+	printf("(App) Secret stored in the enclave.\n");
 
 	/* Get the SHA256 hash of the secret from the enclave */
 	status= get_hash(e.enclave, &rv, sha2);
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	if ( status != SGX_SUCCESS ) {
 		fprintf(stderr, "ECALL get_hash: %08x\n", status);
 		return 1;
@@ -246,7 +246,7 @@ int main (int argc, char *argv[])
  * Search for the enclave file and then try and load it.
  */
 
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 sgx_status_t create_enclave_search (const char *filename, const int debug,
 # else
 oe_result_t create_enclave_search (const char *filename, const int debug,
@@ -255,11 +255,11 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 {
 	struct stat sb;
 	char epath[PATH_MAX];	/* includes NULL */
-# ifdef SGX_HAVE_OPENENCLAVE
+# ifdef SGX_WITH_OPENENCLAVE
 	uint32_t flags= 0;
 # endif
 
-# ifdef SGX_HAVE_OPENENCLAVE
+# ifdef SGX_WITH_OPENENCLAVE
 	if ( debug ) flags|= OE_ENCLAVE_FLAG_DEBUG;
 	if ( sim )   flags|= OE_ENCLAVE_FLAG_SIMULATE;
 # endif
@@ -267,7 +267,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 	/* Is filename an absolute path? */
 
 	if ( filename[0] == '/' ) {
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 		return sgx_create_enclave(filename, debug, e->token, &e->updated,
 			&e->enclave, &e->attr);
 # else
@@ -279,7 +279,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 	/* Is the enclave in the current working directory? */
 
 	if ( stat(filename, &sb) == 0 ) {
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 		return sgx_create_enclave(filename, debug, &e->token, &e->updated,
 			&e->enclave, e->attr);
 # else
@@ -291,7 +291,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 	/* Search the paths in LD_LBRARY_PATH */
 
 	if ( file_in_searchpath(filename, getenv("LD_LIBRARY_PATH"), epath, PATH_MAX) ) {
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 		return sgx_create_enclave(epath, debug, &e->token, &e->updated,
 			&e->enclave, e->attr);
 # else
@@ -303,7 +303,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 	/* Search the paths in DT_RUNPATH */
 
 	if ( file_in_searchpath(filename, getenv("DT_RUNPATH"), epath, PATH_MAX) ) {
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 		return sgx_create_enclave(epath, debug, &e->token, &e->updated,
 			&e->enclave, e->attr);
 # else
@@ -315,7 +315,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 	/* Standard system library paths */
 
 	if ( file_in_searchpath(filename, DEF_LIB_SEARCHPATH, epath, PATH_MAX) ) {
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 		return sgx_create_enclave(epath, debug, &e->token, &e->updated,
 			&e->enclave, e->attr);
 # else
@@ -332,7 +332,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 	 * get reported to the calling function.
 	 */
 
-# ifdef SGX_HAVE_SGXSDK
+# ifdef SGX_WITH_SGXSDK
 	return sgx_create_enclave(filename, debug, &e->token, &e->updated,
 		&e->enclave, e->attr);
 # else
