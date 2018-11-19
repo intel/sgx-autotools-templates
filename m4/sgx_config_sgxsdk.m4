@@ -85,10 +85,10 @@ AC_DEFUN([SGX_CONFIG_SGXSDK],[
 
 	dnl Trusted Libraries
 
-	ac_cv_sgx_tlib_cppflags="-I${ac_cv_sgx_sdk_incdir} -I${ac_cv_sgx_sdk_incdir}/tlibc"
+	ac_cv_sgx_tlib_cppflags="-I${ac_cv_sgx_sdk_incdir} -I${ac_cv_sgx_sdk_incdir}/tlibc ${SGX_TSTDC_CPPFLAGS}"
 
-	ac_cv_sgx_tlib_cflags="-nostdinc -fvisibility=hidden -fpie -fstack-protector"
-	ac_cv_sgx_tlib_cxxflags="-nostdinc++ ${ac_cv_sgx_tlib_cflags}"
+	ac_cv_sgx_tlib_cflags="-nostdinc -fvisibility=hidden -fpie -fstack-protector ${SGX_TSTDC_CFLAGS}"
+	ac_cv_sgx_tlib_cxxflags="-nostdinc++ ${ac_cv_sgx_tlib_cflags} ${SGX_TSTDC_CXXFLAGS}"
 
 	dnl (no ldadd or ldflags since building a library does not invoke 
 	dnl the linker)
@@ -96,12 +96,12 @@ AC_DEFUN([SGX_CONFIG_SGXSDK],[
 
 	dnl Enclaves
 
-	ac_cv_sgx_enclave_cppflags="${ac_cv_sgx_tlib_cppflags}"
+	ac_cv_sgx_enclave_cppflags="${ac_cv_sgx_tlib_cppflags} ${SGX_TSTDC_CPPFLAGS=}"
 
-	ac_cv_sgx_enclave_cflags="${ac_cv_sgx_tlib_cflags} -ffunction-sections -fdata-sections"
-	ac_cv_sgx_enclave_cxxflags="-nostdinc++ ${ac_cv_sgx_enclave_cflags}"
+	ac_cv_sgx_enclave_cflags="${ac_cv_sgx_tlib_cflags} -ffunction-sections -fdata-sections ${SGX_TSTDC_CFLAGS=}"
+	ac_cv_sgx_enclave_cxxflags="-nostdinc++ ${ac_cv_sgx_enclave_cflags} ${SGX_TSTDC_CXXFLAGS=}"
 
-	ac_cv_sgx_enclave_ldflags="-nostdlib -nodefaultlibs -nostartfiles -L${ac_cv_sgx_sdk_libdir}"
+	ac_cv_sgx_enclave_ldflags="-nostdlib -nodefaultlibs -nostartfiles -L${ac_cv_sgx_sdk_libdir} ${SGX_TSTDC_LDFLAGS}"
 	ac_cv_sgx_enclave_ldadd="-Wl,--no-undefined -Wl,--whole-archive -lsgx_trts -Wl,--no-whole-archive -Wl,--start-group -lsgx_tstdc -lsgx_tcrypto -lsgx_tservice_lib -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"
 
 	dnl Substitutions for building an app.
@@ -118,17 +118,17 @@ AC_DEFUN([SGX_CONFIG_SGXSDK],[
 
 	AC_SUBST(SGX_TLIB_CFLAGS, [$ac_cv_sgx_tlib_cflags])
 	AC_SUBST(SGX_TLIB_CPPFLAGS,
-		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
+		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc ${SGX_TSTDC_CPPFLAGS}"])
 	AC_SUBST(SGX_TLIB_CXXFLAGS, [$ac_cv_sgx_tlib_cxxflags])
 
 	dnl Substitutions for building an enclave
 
 	AC_SUBST(SGX_ENCLAVE_CFLAGS, [$ac_cv_sgx_enclave_cflags])
 	AC_SUBST(SGX_ENCLAVE_CPPFLAGS, 
-		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc"])
+		["-I\$(SGXSDK_INCDIR) -I\$(SGXSDK_INCDIR)/tlibc ${SGX_TSTDC_CPPFLAGS}"])
 	AC_SUBST(SGX_ENCLAVE_CXXFLAGS, [$ac_cv_sgx_enclave_cxxflags])
 	AC_SUBST(SGX_ENCLAVE_LDFLAGS,
-		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR)"])
+		["-nostdlib -nodefaultlibs -nostartfiles -L\$(SGXSDK_LIBDIR) ${SGX_TSTDC_LDFLAGS}"])
 	AC_SUBST(SGX_ENCLAVE_LDADD,
 		["-Wl,--no-undefined -Wl,--whole-archive -l\$(SGX_TRTS_LIB) -Wl,--no-whole-archive -Wl,--start-group \$(SGX_EXTRA_TLIBS) -lsgx_tstdc -lsgx_tcrypto -l\$(SGX_TSERVICE_LIB) -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"])
 

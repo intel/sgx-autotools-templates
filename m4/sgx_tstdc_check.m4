@@ -1,5 +1,21 @@
-# SGX_TSTDC_CHECK_TYPE([TYPE], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
-# ----------------------------------------------------------------------------------
+# SGX_TSTDC_COMPILE_IFELSE(INPUT, [ACTION-IF-TRUE], [ACTION-IF-FALSE])
+# --------------------------------------------------------------------
+# Works like AC_COMPILE_IFELSE only it uses the SGX trusted C
+# headers and libraries. Do this by saving the old compiler
+# and preprocessor flags and replacing them with the flags
+# used to compile a trusted library.
+AC_DEFUN([SGX_TSTDC_COMPILE_IFELSE],[
+	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
+		_SGX_TSTDC_COMPILER_FLAGS_SET
+		AC_COMPILE_IFELSE([$1],[$2],[$3])
+		_SGX_TSTDC_COMPILER_FLAGS_RESTORE
+	],[
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_COMPILE_IFELSE] on build without Intel SGX])
+	])
+]) # SGX_TSTDC_COMPILE_IFELSE
+
+# SGX_TSTDC_CHECK_TYPE(TYPE, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# --------------------------------------------------------------------------------
 # Works like AC_CHECK_TYPE only it uses includes from the
 # SGX trusted C headers, not in the standard C library headers.
 # We do this by saving the old compiler and preprocessor flags
@@ -15,7 +31,7 @@ AC_DEFUN([SGX_TSTDC_CHECK_TYPE], [
 	])
 ]) # SGX_TSTDC_CHECK_TYPE
 
-# SGX_TSTDC_CHECK_TYPES([TYPES], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# SGX_TSTDC_CHECK_TYPES(TYPES, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
 # ----------------------------------------------------------------------------------
 # Works like AC_CHECK_TYPE only it uses includes from the
 # SGX trusted C headers, not in the standard C library headers.
@@ -32,8 +48,8 @@ AC_DEFUN([SGX_TSTDC_CHECK_TYPES], [
 
 
 
-# SGX_TSTDC_CHECK_DECL([SYMBOL], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
-# ------------------------------------------------------------------------
+# SGX_TSTDC_CHECK_DECL(SYMBOL, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# ----------------------------------------------------------------------------------
 # Works like AC_CHECK_DECL only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
 # We do this by saving the old compiler and preprocessor flags
@@ -49,8 +65,8 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECL], [
 	])
 ]) # SGX_TSTDC_CHECK_DECL
 
-# SGX_TSTDC_CHECK_DECLS([SYMBOLS], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
-# ------------------------------------------------------------------------
+# SGX_TSTDC_CHECK_DECLS(SYMBOLS, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# ------------------------------------------------------------------------------------
 # Works like AC_CHECK_DECLS only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
 # See SGX_TSTDC_CHECK_DECL
@@ -64,8 +80,8 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECLS], [
 	])
 ]) # SGX_TSTDC_CHECK_DECLS
 
-# SGX_TSTDC_CHECK_DECLS_ONCE([SYMBOLS])
-# -------------------------------------
+# SGX_TSTDC_CHECK_DECLS_ONCE(SYMBOLS)
+# -----------------------------------
 # Works like AC_CHECK_DECLS_ONCE only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
 # See SGX_TSTDC_CHECK_DECL
@@ -80,7 +96,7 @@ AC_DEFUN([SGX_TSTDC_CHECK_DECLS_ONCE], [
 ]) # SGX_TSTDC_CHECK_DECLS
 
 # SGX_TSTDC_CHECK_HEADER(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
-# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
 # Works like AC_CHECK_HEADER only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
 # We do this by saving the old compiler and preprocessor flags
@@ -99,8 +115,8 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADER], [
 	])
 ]) # SGX_TSTDC_CHECK_HEADER
 
-# SGX_TSTDC_CHECK_HEADERS(HEADER, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
-# ------------------------------------------------------------------------
+# SGX_TSTDC_CHECK_HEADERS(HEADERS, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [INCLUDES])
+# --------------------------------------------------------------------------------------
 # Works like AC_CHECK_HEADERS only it looks for headers in the 
 # SGX trusted C headers, not in the standard C library headers.
 # See SGX_TSTDC_CHECK_HEADER
@@ -118,6 +134,17 @@ AC_DEFUN([SGX_TSTDC_CHECK_HEADERS], [
 	])
 ]) # SGX_TSTDC_CHECK_HEADERS
 
+# SGX_TSTDC_CHECK_LIB(LIBRARY, FUNCTION, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND], [OTHER-LIBRARIES])
+# ---------------------------------------------------------------------------------------------------
+AC_DEFUN([SGX_TSTDC_CHECK_LIB], [
+	AS_IF([test "x${ac_cv_enable_sgx}" = "xyes"],[
+		_SGX_TSTDC_BUILD_FLAGS_SET
+		AC_CHECK_LIB([$1],[$2],[$3],[$4],[$5])
+		_SGX_TSTDC_BUILD_FLAGS_RESTORE
+	],[
+		AC_MSG_ERROR([Tried to call [SGX_TSTDC_CHECK_LIB] on build without Intel SGX])
+	])
+]) # SGX_TSTDC_CHECK_LIB
 
 # SGX_TSTDC_CHECK_FUNC(FUNCTION, [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 # ------------------------------------------------------------------------
@@ -158,9 +185,9 @@ AC_DEFUN([_SGX_TSTDC_COMPILER_FLAGS_SET],[
 		old_CFLAGS="$CFLAGS"
 		old_CPPFLAGS="$CPPFLAGS"
 		old_CXXFLAGS="$CXXFLAGS"
-		CFLAGS="${ac_cv_sgx_enclave_cflags}"
-		CPPFLAGS="-nostdinc -nostdinc++ ${ac_cv_sgx_enclave_cppflags}"
-		CXXFLAGS="${ac_cv_sgx_enclave_cxxflags}"
+		CFLAGS="${ac_cv_sgx_enclave_cflags} ${SGX_TSTDC_CFLAGS}"
+		CPPFLAGS="-nostdinc -nostdinc++ ${ac_cv_sgx_enclave_cppflags} ${SGX_TSTDC_CPPFLAGS}"
+		CXXFLAGS="${ac_cv_sgx_enclave_cxxflags} ${SGX_TSTDC_CXXFLAGS}"
 		old_echo_n="${as_echo_n}"
 		as_echo_n='echo -n Intel SGX: '
 ])
@@ -178,18 +205,18 @@ AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_SET],[
 		old_CXXFLAGS="$CXXFLAGS"
 		old_LDFLAGS="$LDFLAGS"
 		old_LIBS="$LIBS"
-		CFLAGS="${ac_cv_sgx_enclave_cflags}"
-		CPPFLAGS="${ac_cv_sgx_enclave_cppflags}"
-		CXXFLAGS="${ac_cv_sgx_enclave_cxxflags}"
+		CFLAGS="${ac_cv_sgx_enclave_cflags} ${SGX_TSTDC_CFLAGS}"
+		CPPFLAGS="${ac_cv_sgx_enclave_cppflags} ${SGX_TSTDC_CPPFLAGS}"
+		CXXFLAGS="${ac_cv_sgx_enclave_cxxflags} ${SGX_TSTDC_CXXFLAGS}"
 		dnl We have to do thiese a litte differently to ensure a clean
 		dnl link. Remember, we are just trying to ensure the symbol
 		dnl is found, not produce a usable object.
 		AS_IF([test "$ac_cv_sgx_toolkit" = "intel-sgxsdk"],[
-			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,__ImageBase=0 -Wl,--defsym,_start=0 -Wl,--defsym,g_ecall_table=0 -Wl,--defsym,g_dyn_entry_table=0"
+			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,__ImageBase=0 -Wl,--defsym,_start=0 -Wl,--defsym,g_ecall_table=0 -Wl,--defsym,g_dyn_entry_table=0 ${SGX_TSTDC_LDFLAGS}"
 			LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc -lsgx_trts -lsgx_tcrypto -Wl,--end-group"
 		],[
 			dnl LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,_oe_ecalls_table=0 -Wl,--defsym,_oe_ecalls_table_size=0 -Wl,--defsym,_handle_call_enclave_function=0"
-			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin"
+			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin ${SGX_TSTDC_LDFLAGS}"
 			LIBS="${ac_cv_sgx_enclave_ldadd}"
 		])
 		old_echo_n="${as_echo_n}"

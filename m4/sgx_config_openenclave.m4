@@ -55,16 +55,16 @@ AC_DEFUN([SGX_CONFIG_OPENENCLAVE],[
 
 	export PKG_CONFIG_PATH=$OE/share/pkgconfig
 
-	ac_cv_sgx_app_cflags="`pkg-config --cflags-only-other oehost-${ac_ct_CC}`"
-	ac_cv_sgx_app_cppflags="`pkg-config --cflags-only-I oehost-${ac_ct_CC}`"
-	ac_cv_sgx_app_cxxflags="`pkg-config --cflags-only-other oehost-${ac_ct_CC}`"
-	ac_cv_sgx_app_ldflags="`pkg-config --libs-only-L --libs-only-other oehost-${ac_ct_CXX}`"
+	ac_cv_sgx_app_cflags="`pkg-config --cflags-only-other oehost-${ac_ct_CC}` ${SGX_TSTDC_CFLAGS}"
+	ac_cv_sgx_app_cppflags="`pkg-config --cflags-only-I oehost-${ac_ct_CC}` ${SGX_TSTDC_CPPFLAGS}"
+	ac_cv_sgx_app_cxxflags="`pkg-config --cflags-only-other oehost-${ac_ct_CC}` ${SGX_TSTDC_CXXFLAGS}"
+	ac_cv_sgx_app_ldflags="`pkg-config --libs-only-L --libs-only-other oehost-${ac_ct_CXX}` ${SGX_TSTDC_LDFLAGS}"
 	ac_cv_sgx_app_ldadd="`pkg-config --libs-only-l oehost-${ac_ct_CXX}`"
 
-	ac_cv_sgx_enclave_cflags="`pkg-config --cflags-only-other oeenclave-${ac_ct_CC}`"
-	ac_cv_sgx_enclave_cppflags="`pkg-config --cflags-only-I oeenclave-${ac_ct_CC}`"
-	ac_cv_sgx_enclave_cxxflags="`pkg-config --cflags-only-other oeenclave-${ac_ct_CC}`"
-	ac_cv_sgx_enclave_ldflags="`pkg-config --libs-only-L --libs-only-other oeenclave-${ac_ct_CXX}`"
+	ac_cv_sgx_enclave_cflags="`pkg-config --cflags-only-other oeenclave-${ac_ct_CC}` ${SGX_TSTDC_CFLAGS}"
+	ac_cv_sgx_enclave_cppflags="`pkg-config --cflags-only-I oeenclave-${ac_ct_CC}` ${SGX_TSTDC_CPPFLAGS}"
+	ac_cv_sgx_enclave_cxxflags="`pkg-config --cflags-only-other oeenclave-${ac_ct_CC}` ${SGX_TSTDC_CXXFLAGS}"
+	ac_cv_sgx_enclave_ldflags="`pkg-config --libs-only-L --libs-only-other oeenclave-${ac_ct_CXX}` ${SGX_TSTDC_LDFLAGS}"
 	ac_cv_sgx_enclave_ldadd="`pkg-config --libs-only-l oeenclave-${ac_ct_CXX}`"
 
 	dnl Substitutions for building a trusted library (these 
