@@ -1,6 +1,6 @@
 # Notice
 
-You are viewing a branch that is in active development. It contains 
+You are viewing a branch that is in active development. It contains
 undocumented features that will change before a final relase, and
 has only partial functionality. *Do not use the code in this branch
 for critical or production projects.*
@@ -9,10 +9,17 @@ for critical or production projects.*
 
 The files in this package provide convenience macros and definitions
 to integrate Intel Software Guard Extensions (Intel SGX) projects into
-the GNU build system. It includes the following.
+the GNU build system. It can be used with the following SGX tool kits:
+
+ * [Intel SGX SDK](https://github.com/intel/linux-sgx)
+ * [Microsoft\* Open Enclave SDK\*](https://github.com/Microsoft/openenclave), either standalone or as part of [Azure\* Confidential Computing\*](https://azure.microsoft.com/en-us/solutions/confidential-compute/)
+
+It includes the following files.
 
 M4 Macro files:
 ```
+  m4/sgx_config_openenclave.m4
+  m4/sgx_config_sgxsdk.m4
   m4/sgx_init.m4
   m4/sgx_init_optional.m4
   m4/sgx_tstdc_check.m4
@@ -32,7 +39,7 @@ requires Intel SGX, and the other for a project where Intel SGX support
 is a compile-time option.
 
 
-## M4 Macros 
+## M4 Macros
 
 The M4 macro files define the following functions for use in GNU Autoconf
 configure.ac files:
@@ -63,21 +70,21 @@ configure.ac files:
 </tbody>
 </table>
 
-You should invoke either **SGX_INIT** or **SGX_INIT_OPTIONAL**. Do not call 
+You should invoke either **SGX_INIT** or **SGX_INIT_OPTIONAL**. Do not call
 both.
 
 ### SGX_IF_ENABLED
 
 &mdash;Macro: SGX_IF_ENABLED([ _run-if-enabled_ ], [ _run-if-disabled_ ])
 
-If Intel SGX is enabled in the build, then run the shell code 
+If Intel SGX is enabled in the build, then run the shell code
 _run-if-enabled_, otherwise run _run-if-disabled_.
 
-Note that "enabled" in this context means: the build _explicitly_ 
+Note that "enabled" in this context means: the build _explicitly_
 depends on Intel SGX because SGX_INIT was called (see below), or the
 user asked for Intel SGX by supplying `--enable-sgx` as an option
-to configure in builds where Intel SGX is optional (via the 
-SGX_INIT_OPTIONAL macro). 
+to configure in builds where Intel SGX is optional (via the
+SGX_INIT_OPTIONAL macro).
 
 This is typically used to indication actions that need to be taken
 when software is compiled without Intel SGX support. For example,
@@ -102,7 +109,7 @@ defines the symbol `HAVE_SGX` in `config.h`.
 &mdash;Macro: SGX_INIT
 
 Set up definitions for a software build that requires the use of Intel SGX.
-The project will require that Intel SGX SDK be installed, and configure will 
+The project will require that Intel SGX SDK be installed, and configure will
 abort if it's not found.
 
 It takes the following actions:
@@ -119,15 +126,24 @@ It takes the following actions:
   --with-sgx-build=debug|prerelease|release
                           Set Intel SGX build mode (default: debug)
 
+  --with-sgx-toolkit=intel|ms-openenclave
+                          Set the SGX tool kit to either the Intel SGX
+                          SDK (intel) or Microsoft's Open ENCLAVE
+                          (ms-openenclave). (defaults to intel)
+
   --with-sgxssl=path      Set the path to your Intel SGX SSL directory
                           (defaults to /opt/intel/sgxssl)
 
   --with-sgxsdk=path      Set the path to your Intel SGX SDK directory
                           (defaults to auto-detection)
+
+  --with-openenclave=path
+                          Set the path to your Open Enclave directory
+                          (defaults to /opt/openenclave)
 ```
 
 
-* Determines whether or not Intel SGX support should be enabled in the build. 
+* Determines whether or not Intel SGX support should be enabled in the build.
 
     * If **SGX_INIT** was invoked directly from configure.ac, then Intel SGX
  support is enabled.
@@ -140,7 +156,7 @@ It takes the following actions:
 
 * Sets Automake conditionals.
 
-* Attempts to discover the location of the Intel SGX SDK using the following
+* If using the Intel SGX SDK, it attempts to discover the location of the SDK using the following
 procedure:
 
     1. If `--with-sgxsdk-path=path` is provided, use that path.
@@ -166,14 +182,14 @@ procedure:
 This macro adds a configuration option to enable SGX support in projects
 at build time. It is intended for packages where Intel SGX is not required,
 and thus provided as a configuration option prior to compilation. Intel
-SGX support is _disabled_ by default. 
+SGX support is _disabled_ by default.
 
 It takes the following actions:
 
 * Adds a command line argument to enable SGX support in the build.
 
 ```
-   --enable-sgx        Build with/without Intel SGX support (default: disabled)
+  --enable-sgx        Build with/without Intel SGX support (default: disabled)
 ```
 
 * Invokes the **SGX_INIT** macro.
@@ -185,7 +201,7 @@ name, only they perform their tests on the trusted C library distributed
 with the Intel SGX SDK instead of the standard C library.
 
 They are intended to facilite porting static libraries to Intel SGX
-trusted libraries: an Intel SGX build should call these functions 
+trusted libraries: an Intel SGX build should call these functions
 instead of the standard ones to ensure it properly detects which
 headers and functions are present.
 
@@ -202,104 +218,176 @@ trusted build might do the following:
   ])
 ```
 
-**Warning:** Since these macros call the equivalent AC_CHECK_\* macro,
+**Warning:**
+<blockquote>Since these macros call the equivalent AC_CHECK_\* macro,
 they will by default define the symbol HAVE_\* for each function found.
 When building just a trusted library or enclave this is fine, but if a
 common autoconf configuration is used for both _untrusted_ applications
 and libaries _and_ trusted ones (enclaves and trusted libraries), then
 the untrusted code will have incorrect definitions. These macros also
 collide with AC_CHECK_\* since they share the same cache variables.
-Use the SGX_TSTDC_CHECK_\*_PREFIX macros if your autoconfig file is
-used to create both trusted and untrusted code.
+**Use the SGX_TSTDC_CHECK_\*_PREFIX macros if your autoconfig file is
+used to create both trusted and untrusted code.**</blockquote>
 
 ### SGX_TSTDC_CHECK_\*_PREFIX
 
 These macros work like SGX_TSTDC_CHECK_\*, only they assign a prefix of
-"tstdc_" to cache variables, and "TSTD_C" to precoressor symbols. They
+"tstdc_" to cache variables, and "TSTDC_" to preprocessor symbols. They
 allow you to search for the same symbol name in both trusted and untrusted
 libraries. For example,
 
 ```
-   AC_CHECK_FUNCS([printf snprintf sscanf])
-   SGX_TSTDC_CHECK_FUNCS_PREFIX([printf snprintf sscanf])
+  AC_CHECK_FUNCS([printf snprintf sscanf])
+  SGX_TSTDC_CHECK_FUNCS_PREFIX([printf snprintf sscanf])
 ```
 
 will result in the following output:
 
 ```
-   checking for printf... yes
-   checking for snprintf... yes
-   checking for sscanf... yes
-   Intel SGX: checking for printf... no
-   Intel SGX: checking for snprintf... yes
-   Intel SGX: checking for sscanf... no
+  checking for printf... yes
+  checking for snprintf... yes
+  checking for sscanf... yes
+  Intel SGX: checking for printf... no
+  Intel SGX: checking for snprintf... yes
+  Intel SGX: checking for sscanf... no
 ```
 
 and the following symbol definitions:
 
 ```
-   #define HAVE_PRINTF 1
-   #define HAVE_SNPRINTF 1
-   #define HAVE_SSCANF 1
-   #define HAVE_TSTDC_PRINTF 0
-   #define HAVE_TSTDC_SNPRINTF 1
-   #define HAVE_TSTDC_SSCANF 0
+  #define HAVE_PRINTF 1
+  #define HAVE_SNPRINTF 1
+  #define HAVE_SSCANF 1
+  #define HAVE_TSTDC_PRINTF 0
+  #define HAVE_TSTDC_SNPRINTF 1
+  #define HAVE_TSTDC_SSCANF 0
 ```
+
+SGX_TSTDC_CHECK_HEADER and SGX_TSTDC_CHECK_HEADERS do not use the default
+includes from AC_INCLUDES_DEFAULT (the default includes would cause
+erroneous test failures).
 
 ## Makefile substitution variables
 
+Unless otherwise noted:
+
+ * Variables starting with **SGXSDK\_** and **SGX_** apply to the Intel SGX SDK only.
+
+ * Variables starting with **OE\_** apply to the Open Enclave SDK only.
+
+### Paths
+
 **Intel SGX SDK paths**
 ```
-   SGXSDK
-   SGXSDK_BINDIR
-   SGXSDK_INCDIR
-   SGXSDK_LIBDIR
+  SGXSDK
+  SGXSDK_BINDIR
+  SGXSDK_INCDIR
+  SGXSDK_LIBDIR
+```
+
+**Open Enclave SDK paths**
+```
+  OE
+  OE_BINDIR
+  OE_INCDIR
+  OE_LIBDIR
 ```
 
 **Intel SGX SSL paths**
 ```
-   SGXSSL
-   SGXSSL_BINDIR
-   SGXSSL_INCDIR
-   SGXSSL_LIBDIR
+  SGXSSL
+  SGXSSL_BINDIR
+  SGXSSL_INCDIR
+  SGXSSL_LIBDIR
 ```
 
 **Enclave library installation path**
 ```
-   enclave_libdir
+  enclave_libdir
+```
+
+### Compilation and Linking
+
+**Flags for compiling and linking an Intel SGX applications**
+
+Note that using the **_LDADD** variables assumes dynamic linking of the runtime libraries is desired.
+
+```
+  OE_APP_CFLAGS
+  OE_APP_CPPFLAGS
+  OE_APP_CXXFLAGS
+  OE_APP_LDFLAGS
+  OE_APP_LDADD
+
+  SGX_APP_CFLAGS
+  SGX_APP_CPPFLAGS
+  SGX_APP_CXXFLAGS
+  SGX_APP_LDFLAGS
+  SGX_APP_LDADD
+```
+
+Note the SGX\_APP\_LDADD is defined using SGX\_UAE\_SERVICE\_LIB and
+SGX\_URTS\_LIB (see below).
+
+**Trusted runtime library names (to support h/w and simulation modes)**
+
+These apply to Intel SGX SDK applications only, and are needed to
+differentiate between hardware and simulation mode versions of
+the trusted runtime and trusted service library.
+
+```
+  SGX_TRTS_LIB
+  SGX_TSERVICE_LIB
+```
+
+**Untrusted runtime library names (to support h/w and simulation modes)**
+
+These apply to Intel SGX SDK applications only, and are needed to
+differentiate between hardware and simulation mode versions of
+the untrusted runtime and untrusted service library.
+
+```
+  SGX_UAE_SERVICE_LIB
+  SGX_URTS_LIB
 ```
 
 **Flags for compiling and linking an Intel SGX enclave**
 ```
-   SGX_ENCLAVE_CFLAGS
-   SGX_ENCLAVE_CPPFLAGS
-   SGX_ENCLAVE_CXXFLAGS
-   SGX_ENCLAVE_LDFLAGS
-   SGX_ENCLAVE_LDADD
+  OE_ENCLAVE_CFLAGS
+  OE_ENCLAVE_CPPFLAGS
+  OE_ENCLAVE_CXXFLAGS
+  OE_ENCLAVE_LDFLAGS
+  OE_ENCLAVE_LDADD
+
+  SGX_ENCLAVE_CFLAGS
+  SGX_ENCLAVE_CPPFLAGS
+  SGX_ENCLAVE_CXXFLAGS
+  SGX_ENCLAVE_LDFLAGS
+  SGX_ENCLAVE_LDADD
 ```
+
+Note the SGX\_ENCLAVE\_LDADD is defined using SGX\_TAE\_SERVICE\_LIB and
+SGX\_TRTS\_LIB (see below).
 
 **Flags for compiling an Intel SGX trusted library**
 ```
-   SGX_TLIB_CFLAGS
-   SGX_TLIB_CPPFLAGS
-   SGX_TLIB_CXXFLAGS
-```
+  OE_TLIB_CFLAGS
+  OE_TLIB_CPPFLAGS
+  OE_TLIB_CXXFLAGS
 
-**Trusted runtime library names (to support h/w and simulation modes)**
-```
-   SGX_TRTS_LIB
-   SGX_TSERVICE_LIB
-```
-
-**Untrusted runtime library names (to support h/w and simulation modes)**
-```
-   SGX_UAE_SERVICE_LIB
-   SGX_URTS_LIB
+  SGX_TLIB_CFLAGS
+  SGX_TLIB_CPPFLAGS
+  SGX_TLIB_CXXFLAGS
 ```
 
 **Indicating use of Intel SGX simulation mode**
+
+This #define applies to both the Intel SGX SDK and Open Enclave SDK,
+though Open Enclave applications can choose to run in simulation mode
+at runtime. Simulation mode is a compile-time option for Intel SGX SDK applications.
+
 ```
-   SGX_HW_SIM
+  SGX_HW_SIM
 ```
 
 ---
@@ -310,12 +398,19 @@ and the following symbol definitions:
 
   Set to 1 if the build should utilize Intel SGX, and 0 if it should not.
 
+**SGX_WITH_OPENENCLAVE**
+
+  Set to 1 if the project is being built against the Open Enclave SDK.
+
+**SGX_WITH_SGXSDK**
+
+  Set to 1 if the project is being built against the Intel SGX SDK.
 
 **SGX_HW_SIM**
 
   Set to 1 if the final application should use Intel SGX in simulation
-  mode (via `--enable-sgx-simulation`)
-
+  mode (via `--enable-sgx-simulation`). This is more relevant to the
+  Intel SGX SDK, where simulation mode is a compile-time option.
 
 **ENCLAVE_RELEASE_SIGN**
 
@@ -324,15 +419,31 @@ and the following symbol definitions:
 
 ---
 
+## C Preprocessor Symbols
+
+These symbols are defined in `config.h`.
+
+**HAVE_SGX**
+
+  Defined if the build should utilize Intel SGX, and 0 if it should not.
+
+**SGX_WITH_OPENENCLAVE**
+
+  Defined if the project is being built against the Open Enclave SDK.
+
+**SGX_WITH_SGXSDK**
+
+  Defined if the project is being built against the Intel SGX SDK.
+
 ## Typical usage
 
 ### configure.ac
 
-In your `configure.ac` file you call one of either **SGX_INIT** or 
+In your `configure.ac` file you call one of either **SGX_INIT** or
 **SGX_INIT_OPTIONAL**. _Do not call both_. The former is for software
 that must have Intel SGX available in order to _compile_. Generally
 this is reserved for cases where the application needs Intel SGX
-at runtime in order to function. The latter is for software that 
+at runtime in order to function. The latter is for software that
 has to run on multiple platforms including those which are not
 supported by Intel SGX (including, but not limited to, non-Intel
 CPU's).
@@ -383,30 +494,34 @@ Your Makefile.am must define these three variables:
 
 **ENCLAVE_CONFIG**
 
-  The name of your enclave configuration file. A simple config file will 
+  The name of your enclave configuration file. A simple config file will
   be created for you at build time if you don't have one.
 
 **ENCLAVE_KEY**
 
   The name of the private key file to use when building and signing _debug
-  mode enclaves_. (Release mode enclaves must use a two-step signing 
-  procedure.) If your application does not have a key then one will be 
+  mode enclaves_. (Release mode enclaves must use a two-step signing
+  procedure.) If your application does not have a key then one will be
   randomly generated at build time.
 
 ----
 
+##### Intel SGX SDK Note
+
+<blockquote>
 If you need to include additional trusted libraries to build your enclave,
 add the linker flags (`-lsomelib`) to **SGX_EXTRA_TLIBS**. This Makefile
 variable gets substituted into the final link command line in order
 to include it in the library list between the `--start-group` and
 `--end-group` flags.  Do not use **target_LDADD** for this purpose.
+</blockquote>
 
 A pattern rule exists to create the proxy routines from your EDL file,
-but you'll need to add them to the _SOURCES target manually. For example,
+but you'll need to add them to the **\_SOURCES** target manually. For example,
 if your enclave is named MyEnclave, you would say:
 
 ```
-   myenclave_SOURCES = MyEnclave_t.c MyEnclave_t.h ...
+  myenclave_SOURCES = MyEnclave_t.c MyEnclave_t.h ...
 ```
 
 This is a requirement of Automake, which needs to know, statically,
@@ -418,10 +533,10 @@ You will also need to add the proxy functions to the CLEANFILES target
 so they are removed with a `make clean`.
 
 ```
-   CLEANFILES = MyEnclave_t.c MyEnclave_t.h
+  CLEANFILES = MyEnclave_t.c MyEnclave_t.h
 ```
 
-These are created automatically for you using a pattern rule, 
+These are created automatically for you using a pattern rule,
 
 The Automake include also sets flags for the preprocessor, compilers
 and linker needed to build the enclave. By default, the Intel SGD SDK
@@ -429,17 +544,17 @@ include directory and library directory are added to the preprocessor
 and linker search paths.
 
 ```
-   AM_CPPFLAGS
-   AM_CFLAGS
-   AM_CXXFLAGS
-   AM_LDFLAGS
+  AM_CPPFLAGS
+  AM_CFLAGS
+  AM_CXXFLAGS
+  AM_LDFLAGS
 ```
 
 If you need additional flags in your `Makefile.am`, use += to _add_
 flags, not replace them. For example:
 
 ```
-   AM_CXXFLAGS += -std=c++11
+  AM_CXXFLAGS += -std=c++11
 ```
 
 #### Building Trusted Libraries with Automake
@@ -451,8 +566,8 @@ A trusted library is just a static library compiled with enclave-specific
 flags. Your build target should use the lib_LIBRARIES rule.
 
 ```
-   lib_LIBRARIES = mytlib.a
-   mytlib_a_SOURCES = ...
+  lib_LIBRARIES = mytlib.a
+  mytlib_a_SOURCES = ...
 ```
 
 The Automake include also sets flags for the preprocessor and
@@ -461,9 +576,9 @@ include directory and library directory are added to the preprocessor
 search paths.
 
 ```
-   AM_CPPFLAGS
-   AM_CFLAGS
-   AM_CXXFLAGS
+  AM_CPPFLAGS
+  AM_CFLAGS
+  AM_CXXFLAGS
 ```
 
 #### Building Enclave Applications with Automake
@@ -471,47 +586,64 @@ search paths.
 Include `sgx_app.am` in your Makefile.am to build an enclave. This
 should be included before setting any automake variables.
 
-Enclave applications build like any other application, and should use 
-the bin_PROGRAMS rule. 
+Enclave applications build like any other application, and should use
+the bin_PROGRAMS rule.
 
 ```
-   bin_PROGRAMS = myapp
+  bin_PROGRAMS = myapp
 ```
 
-The untrusted proxy functions automatically generated by edger8r have to 
+The untrusted proxy functions automatically generated by edger8r have to
 be included in the list of source files, and because Automake must know
 the list of source files _statically_ at build time, they have to be
 listed explicitly.
 
 
 ```
-   myapp_SOURCES = main.c 
-   nodist_myapp_SOURCES = MyEnclave_u.c MyEnclave_u.h
-   BUILT_SOURCES = MyEnclave_u.c MyEnclave_u.h
-   CLEANFILES = MyEnclave_u.c MyEnclave_u.h
+  myapp_SOURCES = main.c
+  nodist_myapp_SOURCES = MyEnclave_u.c MyEnclave_u.h
+  BUILT_SOURCES = MyEnclave_u.c MyEnclave_u.h
+  CLEANFILES = MyEnclave_u.c MyEnclave_u.h
 ```
 
 A pattern rule is defined in `sgx_app.am` to make the proxy functions from
-the EDL file. That requires the EDL file to be in the build directly. You 
-can either symlink it in your project directly, or define a rule for 
+the EDL file. That requires the EDL file to be in the build directly. You
+can either symlink it in your project directly, or define a rule for
 _make_ to do that for you (you'll need to add the symlink to the CLEANFILES
 variable if you opt for this approach):
 
 ```
-   MyEnclave.edl: MyEnclave/MyEnclave.edl
+  MyEnclave.edl: MyEnclave/MyEnclave.edl
       ln -s $?
 
-   CLEANFILES = MyEnclave_u.c MyEnclave_u.h MyEnclave.edl
+  CLEANFILES = MyEnclave_u.c MyEnclave_u.h MyEnclave.edl
 ```
 
-The Automake include also sets flags for the preprocessor and linker 
+The Automake include also sets flags for the preprocessor and linker
 that are needed to build an enclave application. The Intel SGD SDK
 include directory and library directory are added to the preprocessor
 and linker search paths.
 
 ```
-   AM_CPPFLAGS
-   AM_LDFLAGS
+  AM_CPPFLAGS
+  AM_LDFLAGS
+```
+
+Linking the runtime libraries must be done using the per-target LDADD
+variable (e.g. `myapp_LDADD`). This is so the Makefile can create
+applicatoons both with and without SGX support. Setting Thesevalues in the
+global AM_LDADD would force all applications to link against the untruste
+runtime libraries.
+
+These libraries depend on the SDK being used, so this would typically be
+wrapped in a conditional:
+
+```
+if SGX_WITH_SGXSDK
+  myapp_LDADD=$(SGX_LDADD)
+else
+  myapp_LDADD=$(OE_APP_LDADD)
+endif
 ```
 
 ----
@@ -523,18 +655,14 @@ application: a program that takes a secret from the command line,
 stashes it in its secret "store", and returns a hash of the secret to
 be printed to STDOUT.
 
-These samples are independent of one another, so each must be built 
-separately. 
+These samples are independent of one another, so each must be built
+separately. Both support the Intel SGX SDK and the Open Enclave SDK.
 
 ```
    $ ./bootstrap
    $ ./configure
    $ make
 ```
-
-**Note that these builds _do not_ place the signed enclave in the same
-directory as the application binary**, so you'll either need to set
-LD_LIBRARY_PATH or copy them manually.
 
 ### samples/sgx-required
 
@@ -544,7 +672,7 @@ simulation mode will not provide any hardware protection.
 
 ### samples/sgx-optional
 
-This build of _storesecret_ does not require the Intel SGX SDK. By 
+This build of _storesecret_ does not require the Intel SGX. By
 default, it does not use Intel SGX and it stores its secret insecurely
 in main memory.
 
@@ -552,4 +680,3 @@ If Intel SGX is enabled by supplying `--enable-sgx` to _configure_ the
 build will use Intel SGX. It can also be built in simulation mode
 via `--enable-sgx-simulation` though of course simulation mode does not
 provide any hardware protection.
-

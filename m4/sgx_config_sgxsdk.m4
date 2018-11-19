@@ -104,6 +104,14 @@ AC_DEFUN([SGX_CONFIG_SGXSDK],[
 	ac_cv_sgx_enclave_ldflags="-nostdlib -nodefaultlibs -nostartfiles -L${ac_cv_sgx_sdk_libdir} ${SGX_TSTDC_LDFLAGS}"
 	ac_cv_sgx_enclave_ldadd="-Wl,--no-undefined -Wl,--whole-archive -lsgx_trts -Wl,--no-whole-archive -Wl,--start-group -lsgx_tstdc -lsgx_tcrypto -lsgx_tservice_lib -Wl,--end-group -Wl,-Bstatic -Wl,-Bsymbolic -Wl,-pie,-eenclave_entry -Wl,--export-dynamic -Wl,--defsym,__ImageBase=0"
 
+	dnl Substitutions for building an app.
+
+	AC_SUBST(SGX_APP_CFLAGS, [])
+	AC_SUBST(SGX_APP_CPPFLAGS, ["-I\$(SGXSDK_INCDIR)"])
+	AC_SUBST(SGX_APP_CXXFLAGS, [])
+	AC_SUBST(SGX_APP_LDFLAGS, ["-L\$(SGXSDK_LIBDIR)"])
+	dnl Assumes you want dynamic linking instead of dynamic loading
+	AC_SUBST(SGX_APP_LDADD, ["-l\$(SGX_URTS_LIB) -l\$(SGX_UAE_SERVICE_LIB)"])
 
 	dnl Substitutions for building a trusted library (generally identical
 	dnl to building an enclave, only without LDADD).
