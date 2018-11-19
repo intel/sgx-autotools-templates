@@ -56,8 +56,10 @@ configure.ac files:
 <tr>                                 <td> SGX_TSTDC_CHECK_FUNCS      </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_HEADER     </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_HEADERS    </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_LIB        </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_TYPE       </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_TYPES      </td></tr>
+<tr>                                 <td> SGX_TSTDC_COMPILE_IFELSE   </td></tr>
 <tr><td rowspan=9> sgx_tstdc_check_prefix.m4 </td><td> SGX_TSTDC_CHECK_DECL_PREFIX </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS_PREFIX   </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS_ONCE_PREFIX </td></tr>
@@ -65,8 +67,10 @@ configure.ac files:
 <tr>                                 <td> SGX_TSTDC_CHECK_FUNCS_PREFIX   </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_HEADER_PREFIX  </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_HEADERS_PREFIX </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_LIB_PREFIX     </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_TYPE_PREFIX    </td></tr>
-<tr>                                 <td> SGX_TSTDC_CHECK_TYPES_PREFIX      </td></tr>
+<tr>                                 <td> SGX_TSTDC_CHECK_TYPES_PREFIX   </td></tr>
+<tr>                                 <td> SGX_TSTDC_COMPILE_IFELSE_PREFIX</td></tr>
 </tbody>
 </table>
 
@@ -266,6 +270,22 @@ and the following symbol definitions:
 SGX_TSTDC_CHECK_HEADER and SGX_TSTDC_CHECK_HEADERS do not use the default
 includes from AC_INCLUDES_DEFAULT (the default includes would cause
 erroneous test failures).
+
+## Influential environment variables
+
+The following environment variables can be set when running the configure
+script in order to pass flags to the compiler and linker when building
+an enclave or trusted library. These flags are used when performing tests
+(SGX\_TSTDC\_CHECK\_\* functions), and in the final Makefile.
+
+```
+  SGX_TSTDC_CFLAGS
+  SGX_TSTDC_CPPFLAGS
+  SGX_TSTDC_CXXFLAGS
+  SGX_TSTDC_LDFLAGS
+```
+
+These are needed when an enclave depends on an external trusted library.
 
 ## Makefile substitution variables
 
