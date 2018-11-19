@@ -42,7 +42,7 @@ configure.ac files:
 <tr><td rowspan=2> sgx_init.m4  </td><td> SGX_IF_ENABLED       </td></tr>
 <tr>                                 <td> SGX_INIT             </td></tr>
 <tr><td>  sgx_init_optional.m4  </td><td> SGX_INIT_OPTIONAL    </td></tr>
-<tr><td rowspan=9> sgx_tstdc_check.m4 </td><td> SGX_TSTDC_CHECK_DECL </td></tr>
+<tr><td rowspan=11> sgx_tstdc_check.m4 </td><td> SGX_TSTDC_CHECK_DECL </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS_ONCE </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_FUNC       </td></tr>
@@ -53,7 +53,7 @@ configure.ac files:
 <tr>                                 <td> SGX_TSTDC_CHECK_TYPE       </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_TYPES      </td></tr>
 <tr>                                 <td> SGX_TSTDC_COMPILE_IFELSE   </td></tr>
-<tr><td rowspan=9> sgx_tstdc_check_prefix.m4 </td><td> SGX_TSTDC_CHECK_DECL_PREFIX </td></tr>
+<tr><td rowspan=11> sgx_tstdc_check_prefix.m4 </td><td> SGX_TSTDC_CHECK_DECL_PREFIX </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS_PREFIX   </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_DECLS_ONCE_PREFIX </td></tr>
 <tr>                                 <td> SGX_TSTDC_CHECK_FUNC_PREFIX    </td></tr>
