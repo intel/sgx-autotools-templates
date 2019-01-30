@@ -103,7 +103,7 @@ AC_DEFUN([SGX_IF_ENABLED],[
 # Execute ACTION_IF_TRUE if SGX is enabled for a build
 # using the Intel SGX SDK.
 AC_DEFUN([SGX_USING_SGXSDK],[
-	AS_IF([test "x${ac_cv_sgx_toolkit}" = "xsgxsdk"], [$1], [$2])
+	AS_IF([test "x${ac_cv_sgx_toolkit}" = "xintel-sgxsdk"], [$1], [$2])
 ])
 
 # SGX_USING_OPENENCLAVE(ACTION_IF_TRUE, ACTION_IF_FALSE)
@@ -111,6 +111,6 @@ AC_DEFUN([SGX_USING_SGXSDK],[
 # Execute ACTION_IF_TRUE if SGX is enabled for a build
 # using Open Enclave.
 AC_DEFUN([SGX_USING_OPENENCLAVE],[
-	AS_IF([test "x${ac_cv_sgx_toolkit}" = "xopenenclave"], [$1], [$2])
+	AS_IF([test "x${ac_cv_sgx_toolkit}" = "xms-openenclave"], [$1], [$2])
 ])
 
