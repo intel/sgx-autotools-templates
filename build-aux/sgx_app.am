@@ -30,42 +30,37 @@ SGXSSL_BINDIR=@SGXSSL_BINDIR@
 SGXSSL_INCDIR=@SGXSSL_INCDIR@
 SGXSSL_LIBDIR=@SGXSSL_LIBDIR@
 
+AM_CPPFLAGS=
+AM_LDFLAGS=
+
 ##                               -------- Intel SGXSDK
 if SGX_WITH_SGXSDK
 
 SGX_EDGER8R=$(SGXSDK_BINDIR)/sgx_edger8r
 
-AM_CPPFLAGS = -I$(SGXSDK_INCDIR)
-AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
+AM_CPPFLAGS+= -I$(SGXSDK_INCDIR)
+AM_LDFLAGS+= -L$(SGXSDK_LIBDIR)
 
 ## Rule to generate untrusted proxy functions from an EDL file.
 
 %_u.h %_u.c: %.edl
 	$(SGX_EDGER8R) --search-path $(SGXSDK_INCDIR) $(SGX_EDGER8R_FLAGS) --untrusted $<
 
-##                                -------- !Intel SGXSDK
-else
-##                                   -------- OpenEnclave
+endif
+##                                -------- end Intel SGXSDK
+
+##                                -------- OpenEnclave
 if SGX_WITH_OPENENCLAVE
 
 OE_EDGER8R=$(OE_BINDIR)/oeedger8r
 
-AM_CPPFLAGS = @OE_APP_CPPFLAGS@
-AM_LDFLAGS = @OE_APP_LDFLAGS@
+AM_CPPFLAGS+= @OE_APP_CPPFLAGS@
+AM_LDFLAGS+= @OE_APP_LDFLAGS@
 
 ## Rule to generate untrusted proxy functions from an EDL file.
 %_u.h %_u.c: %.edl
 	$(OE_EDGER8R) --search-path $(OE_INCDIR) $(OE_EDGER8R_FLAGS) --untrusted $<
 
-##                                   -------- !OpenEnclave
-else
-## Necessary to allow the app's Makefile to always use += for these 
-## variables, and not have to wrap with "if SGX_ENABLED" (which wouldn't
-## make sense for apps where SGX is mandatory).
-AM_CPPFLAGS = 
-AM_LDFLAGS = 
-##                                   -------- end OpenEnclave
-endif
-##                                -------- end Intel SGXSDK
+##                                -------- end OpenEnclave
 endif
 
