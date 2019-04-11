@@ -213,7 +213,7 @@ AC_DEFUN([_SGX_TSTDC_BUILD_FLAGS_SET],[
 		dnl is found, not produce a usable object.
 		AS_IF([test "$ac_cv_sgx_toolkit" = "intel-sgxsdk"],[
 			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,__ImageBase=0 -Wl,--defsym,_start=0 -Wl,--defsym,g_ecall_table=0 -Wl,--defsym,g_dyn_entry_table=0 ${SGX_TSTDC_LDFLAGS}"
-			LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc -lsgx_trts -lsgx_tcrypto -Wl,--end-group"
+			LIBS="-Wl,--no-undefined -Wl,--start-group -lsgx_tstdc -lsgx_trts -lsgx_tcrypto -l${SGX_TSERVICE_LIB} -Wl,--end-group"
 		],[
 			dnl LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin -Wl,--defsym,_oe_ecalls_table=0 -Wl,--defsym,_oe_ecalls_table_size=0 -Wl,--defsym,_handle_call_enclave_function=0"
 			LDFLAGS="${ac_cv_sgx_enclave_ldflags} -fno-builtin ${SGX_TSTDC_LDFLAGS}"
