@@ -82,11 +82,17 @@ AM_CPPFLAGS += -fno-builtin-memset
 
 if SGX_ENABLED
 CLEANFILES = EnclaveHash_u.c EnclaveHash_u.h EnclaveHash.edl \
-	EnclaveHash.signed.so
+	$(SIGNED_ENCLAVE)
 
 ## Copy the signed enclave to the current directory
 
+if SGX_WITH_SGXSDK
+SIGNED_ENCLAVE=EnclaveHash.signed.so
 EnclaveHash.signed.so: EnclaveHash/EnclaveHash.signed.so
+else
+SIGNED_ENCLAVE=EnclaveHash.so.signed
+EnclaveHash.so.signed: EnclaveHash/EnclaveHash.so.signed
+endif
 	ln -s $?
 
 endif
@@ -108,7 +114,7 @@ endif
 if SGX_ENABLED
 nodist_storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
-EXTRA_storesecret_DEPENDENCIES = EnclaveHash.signed.so
+EXTRA_storesecret_DEPENDENCIES = $(SIGNED_ENCLAVE)
 endif
 
 

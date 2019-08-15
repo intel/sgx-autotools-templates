@@ -73,7 +73,7 @@ AM_CPPFLAGS += -fno-builtin-memset
 ## any edger8r generated files here.
 
 CLEANFILES = EnclaveHash_u.c EnclaveHash_u.h EnclaveHash.edl \
-	EnclaveHash_args.h EnclaveHash.signed.so
+	EnclaveHash_args.h $(SIGNED_ENCLAVE)
 
 
 ## The build target
@@ -83,7 +83,13 @@ bin_PROGRAMS = storesecret
 
 ## Copy the signed enclave to the current directory
 
+if SGX_WITH_SGXSDK
+SIGNED_ENCLAVE=EnclaveHash.signed.so
 EnclaveHash.signed.so: EnclaveHash/EnclaveHash.signed.so
+else
+SIGNED_ENCLAVE=EnclaveHash.so.signed
+EnclaveHash.so.signed: EnclaveHash/EnclaveHash.so.signed
+endif
 	ln -s $?
 
 
@@ -97,7 +103,7 @@ storesecret_SOURCES += sgx_detect_linux.c sgx_stub.c
 endif
 nodist_storesecret_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
 BUILT_SOURCES = EnclaveHash_u.c EnclaveHash_u.h
-EXTRA_storesecret_DEPENDENCIES = EnclaveHash.signed.so
+EXTRA_storesecret_DEPENDENCIES = $(SIGNED_ENCLAVE)
 
 ## Library flags. At minimum, an Intel SGX SDK application will need:
 ##
