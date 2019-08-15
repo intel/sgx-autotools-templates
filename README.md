@@ -5,7 +5,7 @@ to integrate Intel Software Guard Extensions (Intel SGX) projects into
 the GNU build system. It can be used with the following SGX tool kits:
 
  * [Intel SGX SDK](https://github.com/intel/linux-sgx)
- * [Microsoft\* Open Enclave SDK\*](https://github.com/Microsoft/openenclave), either standalone or as part of [Azure\* Confidential Computing\*](https://azure.microsoft.com/en-us/solutions/confidential-compute/)
+ * [Microsoft\* Open Enclave SDK 0.6.x\*](https://github.com/Microsoft/openenclave), either standalone or as part of [Azure\* Confidential Computing\*](https://azure.microsoft.com/en-us/solutions/confidential-compute/)
 
 It includes the following files.
 
@@ -26,7 +26,7 @@ Automake includes:
   build-aux/sgx_tlib.am
 ```
 
-In addition to these template files, two sample projects has been provided
+In addition to these template files, two sample projects have been provided
 that demonstrate their usage. One shows integration for a project that
 requires Intel SGX, and the other for a project where Intel SGX support
 is a compile-time option.
@@ -106,8 +106,8 @@ defines the symbol `HAVE_SGX` in `config.h`.
 &mdash;Macro: SGX_INIT
 
 Set up definitions for a software build that requires the use of Intel SGX.
-The project will require that Intel SGX SDK be installed, and configure will
-abort if it's not found.
+The project will require that an SGX SDK be installed, and configure will
+abort if one is not found.
 
 It takes the following actions:
 
@@ -216,15 +216,16 @@ trusted build might do the following:
 ```
 
 **Warning:**
-<blockquote>Since these macros call the equivalent AC_CHECK_\* macro,
-they will by default define the symbol HAVE_\* for each function found.
+<blockquote>Since these macros call the equivalent AC_CHECK_* macro,
+they will by default define the symbol HAVE_* for each function found.
 When building just a trusted library or enclave this is fine, but if a
 common autoconf configuration is used for both _untrusted_ applications
 and libaries _and_ trusted ones (enclaves and trusted libraries), then
 the untrusted code will have incorrect definitions. These macros also
-collide with AC_CHECK_\* since they share the same cache variables.
-**Use the SGX_TSTDC_CHECK_\*_PREFIX macros if your autoconfig file is
-used to create both trusted and untrusted code.**</blockquote>
+collide with AC_CHECK_* since they share the same cache variables.
+
+Use the SGX_TSTDC_CHECK_*_PREFIX macros if your autoconfig file is
+used to create both trusted and untrusted code.</blockquote>
 
 ### SGX_TSTDC_CHECK_\*_PREFIX
 
