@@ -284,7 +284,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&e->enclave, e->attr);
 # else
 		return oe_create_enclave(filename, e->type, flags, e->config,
-			e->config_size, &e->enclave);
+			e->config_size, NULL, 0, &e->enclave);
 # endif
 	}
 
@@ -296,7 +296,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&e->enclave, e->attr);
 # else
 		return oe_create_enclave(epath, e->type, flags, e->config,
-			e->config_size, &e->enclave);
+			e->config_size, NULL, 0, &e->enclave);
 # endif
 	}
 		
@@ -308,7 +308,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&e->enclave, e->attr);
 # else
 		return oe_create_enclave(epath, e->type, flags, e->config,
-			e->config_size, &e->enclave);
+			e->config_size, NULL, 0, &e->enclave);
 # endif
 	}
 
@@ -320,7 +320,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 			&e->enclave, e->attr);
 # else
 		return oe_create_enclave(epath, e->type, flags, e->config,
-			e->config_size, &e->enclave);
+			e->config_size, NULL, 0, &e->enclave);
 # endif
 	}
 
@@ -337,7 +337,7 @@ oe_result_t create_enclave_search (const char *filename, const int debug,
 		&e->enclave, e->attr);
 # else
 	return oe_create_enclave(filename, e->type, flags, e->config,
-		e->config_size, &e->enclave);
+		e->config_size, NULL, 0, &e->enclave);
 # endif
 }
 
