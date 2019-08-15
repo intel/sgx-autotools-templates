@@ -63,7 +63,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # define SGX_DEBUG_FLAG OE_DEBUG_FLAG
 #endif
 
-#define ENCLAVE_NAME "EnclaveHash.signed.so"
+#ifdef SGX_WITH_SGXSDK
+# define ENCLAVE_NAME "EnclaveHash.signed.so"
+#else
+# define ENCLAVE_NAME "EnclaveHash.so.signed"
+#endif
 
 typedef struct _enclave_meta_struct {
 #ifdef SGX_WITH_SGXSDK
